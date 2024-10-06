@@ -11,11 +11,15 @@
     <p class="mb-0">Let's get started by creating your first part!</p>
 </div>
 
+<h1>Existing Parts</h1>
 {% if engine_parts %}
     <ul class="list-group">
         {% for part in engine_parts %}
         <li class="list-group-item">
             <i class="fas fa-plane"></i> <strong>{{ part.name }}</strong> - {{ part.analysis }}
+            <form method="POST" action="{{ url_for('delete_part', part_index=loop.index0) }}">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
         </li>
         {% endfor %}
     </ul>

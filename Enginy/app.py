@@ -20,6 +20,14 @@ def create_part():
         return redirect(url_for('index'))
     return render_template('create_part.html')
 
+@app.route('/delete_part/<int:part_index>', methods=['POST'])
+def delete_part(part_index):
+    # Usunięcie części na podstawie indeksu
+    if 0 <= part_index < len(engine_parts):
+        engine_parts.pop(part_index)  # Usunięcie z listy
+    
+    return redirect(url_for('index'))
+
 # Analysis of whole engine
 @app.route('/analyze_engine', methods=['POST'])
 def analyze_engine():
