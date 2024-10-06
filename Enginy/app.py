@@ -15,16 +15,16 @@ def index():
 def create_part():
     if request.method == 'POST':
         part_name = request.form['part_name']
-        analysis_result = f"Analysis for {part_name}"  # Tu idzie logika analizy
+        analysis_result = f"Analysis for {part_name}"  # Analysis' Logic
         engine_parts.append({'name': part_name, 'analysis': analysis_result})
         return redirect(url_for('index'))
     return render_template('create_part.html')
 
 @app.route('/delete_part/<int:part_index>', methods=['POST'])
 def delete_part(part_index):
-    # Usunięcie części na podstawie indeksu
+    # Delete parts
     if 0 <= part_index < len(engine_parts):
-        engine_parts.pop(part_index)  # Usunięcie z listy
+        engine_parts.pop(part_index)  # Delete from the engine part list
     
     return redirect(url_for('index'))
 
