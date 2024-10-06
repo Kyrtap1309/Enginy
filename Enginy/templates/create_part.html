@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Create a Jet Engine Part</h1>
+
+<form method="POST">
+    <div class="form-group">
+        <label for="part_name">Part Name</label>
+        <input type="text" class="form-control" id="part_name" name="part_name" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Part</button>
+</form>
+{% endblock %}
