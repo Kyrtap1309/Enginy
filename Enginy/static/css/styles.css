@@ -1,11 +1,44 @@
 body {
-    background-color: #f8f9fa;
+    background-color: #f0f8ff;  /* jasnoniebieski kolor przypominający niebo */
+    font-family: 'Arial', sans-serif;
 }
 
 .navbar {
-    margin-bottom: 20px;
+    background-color: #003366; /* ciemnoniebieski kolor */
+    color: #ffffff;
+}
+
+.navbar .navbar-brand, .navbar .nav-link {
+    color: #ffffff !important; /* kolor tekstu na białe */
+}
+
+.navbar .nav-link:hover {
+    color: #ffcc00 !important; /* kolor po najechaniu */
 }
 
 h1 {
     margin-bottom: 20px;
+    color: #003366;
+    text-align: center;
+}
+
+.list-group-item {
+    background-color: #e6f7ff; /* jasnoniebieski kolor dla elementów listy */
+}
+
+.btn {
+    background-color: #ffcc00; /* żółty kolor dla przycisków */
+    color: #003366; /* ciemnoniebieski kolor tekstu */
+}
+
+.btn:hover {
+    background-color: #ffd700; /* jaśniejszy odcień żółtego po najechaniu */
+}
+
+footer {
+    text-align: center;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #003366;
+    color: #ffffff;
 }
