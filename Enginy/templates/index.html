@@ -3,11 +3,19 @@
 {% block content %}
 <h1 class="mb-4">Jet Engine Parts</h1>
 
+<!-- Nowa sekcja informacyjna -->
+<div class="alert alert-info">
+    <h4 class="alert-heading">Welcome to the Jet Engine Analysis App!</h4>
+    <p>This application allows you to create and analyze various parts of a jet engine. You can combine them to simulate a complete engine and perform a comprehensive analysis.</p>
+    <hr>
+    <p class="mb-0">Let's get started by creating your first part!</p>
+</div>
+
 {% if engine_parts %}
     <ul class="list-group">
         {% for part in engine_parts %}
         <li class="list-group-item">
-            <strong>{{ part.name }}</strong> - {{ part.analysis }}
+            <i class="fas fa-plane"></i> <strong>{{ part.name }}</strong> - {{ part.analysis }}
         </li>
         {% endfor %}
     </ul>
