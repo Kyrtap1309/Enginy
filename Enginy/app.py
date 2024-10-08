@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 
+from .utils.constants import available_parts
+
 app = Flask(__name__)
 
 # Example engine parts
 engine_parts = []
-
-# Available engine parts
-available_parts = ['Inlet', 'Compressor', "Combustor", "Turbine", "Nozzle"]
 
 # Main Page
 @app.route('/')
