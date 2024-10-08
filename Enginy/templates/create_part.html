@@ -5,8 +5,12 @@
 
 <form method="POST">
     <div class="form-group">
-        <label for="part_name">Part Name</label>
-        <input type="text" class="form-control" id="part_name" name="part_name" required>
+        <label for="part_name">Select Part</label>
+        <select class="form-control" id="part_name" name="part_name" required>
+            {% for part in available_parts %}
+                <option value="{{ part }}">{{ part }}</option>
+            {% endfor %}
+        </select>
     </div>
     <button type="submit" class="btn btn-primary">Create Part</button>
 </form>

@@ -5,6 +5,9 @@ app = Flask(__name__)
 # Example engine parts
 engine_parts = []
 
+# Available engine parts
+available_parts = ['Inlet', 'Compressor', "Combustor", "Turbine", "Nozzle"]
+
 # Main Page
 @app.route('/')
 def index():
@@ -18,7 +21,8 @@ def create_part():
         analysis_result = f"Analysis for {part_name}"  # Analysis' Logic
         engine_parts.append({'name': part_name, 'analysis': analysis_result})
         return redirect(url_for('index'))
-    return render_template('create_part.html')
+    
+    return render_template('create_part.html', available_parts=available_parts)
 
 @app.route('/delete_part/<int:part_index>', methods=['POST'])
 def delete_part(part_index):
