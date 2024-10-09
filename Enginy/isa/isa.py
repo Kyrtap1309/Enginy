@@ -24,15 +24,19 @@ H_bottom_stratosphere = H_top_troposphere + 0.01  # ISA Bottom of Stratosphere
 H_top_stratosphere = 47_000  # ISA Top of Stratosphere [m]
 T_bottom_stratosphere = 216.65  # Temperature at the bottom of Stratosphere [K]
 p_bottom_stratosphere = 22_632.06  # Pressure at the bottom of Stratosphere [Pa]
-delta_bottom_strato = p_bottom_stratosphere / p_st #ISA Delta value at the bottom of Stratosphere
-theta_bottom_strato = T_bottom_stratosphere / T_st #ISA Theta value at the bottom of Stratosphere
+delta_bottom_strato = (
+    p_bottom_stratosphere / p_st
+)  # ISA Delta value at the bottom of Stratosphere
+theta_bottom_strato = (
+    T_bottom_stratosphere / T_st
+)  # ISA Theta value at the bottom of Stratosphere
+
 
 def _handle_units(H: float, unit) -> float:
     if unit not in CONVERT_TO_M:
         raise ValueError("Invalid input unit")
     else:
         return H * CONVERT_TO_M[unit]
-
 
 
 def ISA_delta(H: float, unit="meter") -> float:
@@ -57,8 +61,7 @@ def ISA_delta(H: float, unit="meter") -> float:
         return delta
     else:
         raise ValueError("Altitude above stratospheric limit")
-    
-ISA_delta_vectorize = np.vectorize(ISA_delta)
+
 
 def ISA_p(H: float, unit="meter") -> float:
     """
@@ -70,9 +73,10 @@ def ISA_p(H: float, unit="meter") -> float:
         pressure: Air pressure at input height according to ISA [Pa]
     """
     H = _handle_units(H, unit)
-    
-    pressure = p_st * ISA_delta_vectorize(H)
+
+    pressure = p_st * ISA_delta(H, unit="meter")
     return pressure
+
 
 def ISA_theta(H: float, unit="meter") -> float:
     """
@@ -86,14 +90,25 @@ def ISA_theta(H: float, unit="meter") -> float:
     H = _handle_units(H, unit)
 
     if H <= H_top_troposphere:
-        temperature = (1 + (L / T_st) * H)
+        temperature = 1 + (L / T_st) * H
         return temperature
     elif H <= H_top_stratosphere:
         temperature = theta_bottom_strato
         return temperature
-    else: 
+    else:
         raise ValueError("Altitude above stratospheric limit")
 
-ISA_theta_vectorize = np.vectorize(ISA_theta)
-    
 
+def ISA_T(H: float, unit="meter") -> float:
+    """
+    Calculate the ISA temperature, for a input temperature altitude
+    limited to top of stratosphere
+    args:
+        H: Absolute height with unit declared in unit variable
+    return:
+        temperature: Air pressure at input height according to ISA [Pa]
+    """
+    H = _handle_units(H, unit)
+
+    temperature = T_st * ISA_theta(H, unit="meter")
+    return temperature
