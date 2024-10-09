@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Constants
 
@@ -33,7 +34,7 @@ def ISA_delta(H: float, unit="meter") -> float:
     args:
         H: Absolute height with unit declared in unit variable
     return:
-        delta: Ratio of Air pressure at input height to ground pressure according to ISA
+        delta: Ratio of Air pressure at input height to ground pressure according to ISA [Pa]
     """
 
     if unit not in CONVERT_TO_M:
@@ -46,9 +47,27 @@ def ISA_delta(H: float, unit="meter") -> float:
         return delta
     elif H <= H_top_stratosphere:
         delta = delta_bottom_strato * np.exp(
-            -(g_st / (R * T_bottom_stratosphere)) * (H - H_top_stratosphere)
+            -(g_st / (R * T_bottom_stratosphere)) * (H - H_bottom_stratosphere)
         )
         return delta
     else:
         raise ValueError("Altitude above stratospheric limit")
+    
+ISA_delta_vectorize = np.vectorize(ISA_delta)
 
+def ISA_p(H: float, unit="meter") -> float:
+    """
+    Calculate the ISA pressure, for a input pressure altitude
+    limited to top of stratosphere
+    args:
+        H: Absolute height with unit declared in unit variable
+    return:
+        pressure: Air pressure at input height according to ISA [Pa]
+    """
+    if unit not in CONVERT_TO_M:
+        raise ValueError("Invalid input unit")
+
+    H *= CONVERT_TO_M[unit]
+    
+    pressure = p_st * ISA_delta_vectorize(H)
+    return pressure
