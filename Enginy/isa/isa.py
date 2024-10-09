@@ -27,6 +27,13 @@ p_bottom_stratosphere = 22_632.06  # Pressure at the bottom of Stratosphere [Pa]
 delta_bottom_strato = p_bottom_stratosphere / p_st #ISA Delta value at the bottom of Stratosphere
 theta_bottom_strato = T_bottom_stratosphere / T_st #ISA Theta value at the bottom of Stratosphere
 
+def _handle_units(H: float, unit) -> float:
+    if unit not in CONVERT_TO_M:
+        raise ValueError("Invalid input unit")
+    else:
+        return H * CONVERT_TO_M[unit]
+
+
 
 def ISA_delta(H: float, unit="meter") -> float:
     """
@@ -38,10 +45,7 @@ def ISA_delta(H: float, unit="meter") -> float:
         delta: Ratio of Air pressure at input height to ground pressure according to ISA [Pa]
     """
 
-    if unit not in CONVERT_TO_M:
-        raise ValueError("Invalid input unit")
-
-    H *= CONVERT_TO_M[unit]
+    H = _handle_units(H, unit)
 
     if H <= H_top_troposphere:
         delta = (1 + (L / T_st) * H) ** (-g_st / (L * R))
@@ -65,10 +69,7 @@ def ISA_p(H: float, unit="meter") -> float:
     return:
         pressure: Air pressure at input height according to ISA [Pa]
     """
-    if unit not in CONVERT_TO_M:
-        raise ValueError("Invalid input unit")
-
-    H *= CONVERT_TO_M[unit]
+    H = _handle_units(H, unit)
     
     pressure = p_st * ISA_delta_vectorize(H)
     return pressure
@@ -82,11 +83,7 @@ def ISA_theta(H: float, unit="meter") -> float:
     return:
         temperature: Air temperature at input height according to ISA [K]
     """
-
-    if unit not in CONVERT_TO_M:
-        raise ValueError("Invalid input unit")
-
-    H *= CONVERT_TO_M[unit]
+    H = _handle_units(H, unit)
 
     if H <= H_top_troposphere:
         temperature = (1 + (L / T_st) * H)
@@ -96,4 +93,7 @@ def ISA_theta(H: float, unit="meter") -> float:
         return temperature
     else: 
         raise ValueError("Altitude above stratospheric limit")
+
+ISA_theta_vectorize = np.vectorize(ISA_theta)
     
+
