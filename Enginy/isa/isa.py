@@ -1,5 +1,6 @@
 import numpy as np
-#TODO after finishing testing remove matplot
+
+# TODO after finishing testing remove matplot
 import matplotlib.pyplot as plt
 
 # Constants
@@ -11,7 +12,7 @@ CONVERT_TO_M = {
     "kilometer": 1000,
 }
 ##Convertion of length units in meters
-CONVERT_FROM_M = {key: 1/value for key, value in CONVERT_TO_M.items()}
+CONVERT_FROM_M = {key: 1 / value for key, value in CONVERT_TO_M.items()}
 
 ## Physic Constants
 ### Troposphere
@@ -21,15 +22,15 @@ L = -6.5 / 1000  # Temperature ISA gradient [K/m]
 H_top_troposphere = 11_000  # ISA Top of Troposphere [m]
 T_st = 288.15  # ISA Temperature on the 0 level [K]
 p_st = 101_325  # ISA Pressure on the 0 level [Pa]
-Rho_st = 1.225 # ISA Density on the 0 level [kg/m3]
+Rho_st = 1.225  # ISA Density on the 0 level [kg/m3]
 
 ### Stratosphere
 H_bottom_stratosphere = H_top_troposphere + 0.01  # ISA Bottom of Stratosphere
 H_top_stratosphere = 47_000  # ISA Top of Stratosphere [m]
 T_bottom_stratosphere = 216.65  # Temperature at the bottom of Stratosphere [K]
 p_bottom_stratosphere = 22_632.06  # Pressure at the bottom of Stratosphere [Pa]
-p_top_stratosphere = 5474.88 #Pressure at the top of Stratosphere [Pa]
-Rho_bottom_stratosphere = 0.36392 # Density at the bottom of Stratosphere [kg/m3]
+p_top_stratosphere = 5474.88  # Pressure at the top of Stratosphere [Pa]
+Rho_bottom_stratosphere = 0.36392  # Density at the bottom of Stratosphere [kg/m3]
 delta_bottom_strato = (
     p_bottom_stratosphere / p_st
 )  # ISA Delta value at the bottom of Stratosphere
@@ -44,7 +45,7 @@ sigma_bottom_strato = (
 )  # ISA Sigma value at the bottom of Stratosphere
 
 
-def _handle_units(H: float, unit, converter:dict = CONVERT_TO_M) -> float:
+def _handle_units(H: float, unit, converter: dict = CONVERT_TO_M) -> float:
     if unit not in CONVERT_TO_M:
         raise ValueError("Invalid input unit")
     else:
@@ -125,6 +126,7 @@ def ISA_T(H: float, unit="meter") -> float:
     temperature = T_st * ISA_theta(H, unit="meter")
     return temperature
 
+
 def ISA_sigma(H: float, unit="meter") -> float:
     """
     Calucate ISA sigma: the ISA density ratio, for a given pressure altitude
@@ -163,23 +165,38 @@ def ISA_rho(H: float, unit="meter") -> float:
     rho = Rho_st * ISA_sigma(H, unit="meter")
     return rho
 
-def inv_ISA_delta(delta: float, unit = "meter") -> float:
+
+def inv_ISA_delta(delta: float, unit="meter") -> float:
     """
     Calucate ISA pressure alitute based on input ISA delta limited to top of stratosphere
     args:
-        delta: ISA delta 
+        delta: ISA delta
         unit: Unit of returned altitude
     return:
         H: Altitude with input unit
     """
     if delta > delta_bottom_strato:
-        altitude = (T_st / L) * ((delta) **(-(L * R) / g_st) - 1)
+        altitude = (T_st / L) * ((delta) ** (-(L * R) / g_st) - 1)
         altitude = _handle_units(altitude, unit, CONVERT_FROM_M)
         return altitude
     elif delta >= delta_top_strato:
-        altitude = H_bottom_stratosphere + (R * T_bottom_stratosphere / g_st) * np.log(delta_bottom_strato/delta)
+        altitude = H_bottom_stratosphere + (R * T_bottom_stratosphere / g_st) * np.log(
+            delta_bottom_strato / delta
+        )
         altitude = _handle_units(altitude, unit, CONVERT_FROM_M)
         return altitude
     else:
         raise ValueError("Pressure/Altitude lower than top stratosphere level")
 
+
+def inv_ISA_p(p: float, unit="meter") -> float:
+    """
+    Calucate ISA pressure alitute based on input ISA pressure limited to top of stratosphere
+    args:
+        pressure: Air pressure [Pa]
+        unit: Unit of returned altitude
+    return:
+        H: Altitude with input unit
+    """
+    altitude = inv_ISA_delta(p / p_st, unit)
+    return altitude
