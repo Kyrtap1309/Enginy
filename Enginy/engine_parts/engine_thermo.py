@@ -74,3 +74,14 @@ def get_gamma(gas: ct.Solution) -> float:
     """
     gamma = gas.cp / gas.cv
     return gamma
+
+def get_R(gas: ct.Solution) -> float:
+    """
+    Calculate a gas constant:
+    args:
+        gas: cantera.Solution object which represents gas or mixture of gases
+    return:
+        R: gas constant (J/(kg * K))
+    """
+    r_constant = gas.cp - gas.cv
+    return r_constant
