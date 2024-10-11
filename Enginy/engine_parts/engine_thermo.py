@@ -1,4 +1,5 @@
 import cantera as ct
+import numpy as np
 
 def get_p_total(p_static: float,
                 gamma: float,
@@ -85,3 +86,14 @@ def get_R(gas: ct.Solution) -> float:
     """
     r_constant = gas.cp - gas.cv
     return r_constant
+
+def get_a(gas: ct.Solution) -> float:
+    """
+    Calculate a local speed of sound for a input gas:
+    args:
+        gas: cantera.Solution object which represents gas or mixture of gases
+    return:
+        a: local speed of sound [m/s]
+    """
+    a = np.sqrt(get_R(gas) * get_gamma(gas) * gas.T)
+    return a
