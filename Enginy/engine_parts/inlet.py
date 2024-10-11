@@ -1,7 +1,9 @@
 import json
 
+
 from ..isa import isa 
 from ..engine_parts import engine_thermo
+from ..engine_parts import gas_management
 
 class Inlet:
     def __init__(self, inlet_json):
@@ -26,4 +28,8 @@ class Inlet:
         tol = 0.01 #Toleration for convergence
         n_iter = 0 #iteration counter
 
+        T_input = isa.ISA_T(self.inlet_data["altitude"])
+        p_input = isa.ISA_p(self.inlet_data["altitude"])
         M_input = self.inlet_data["M_inlet_input"]
+        gas = gas_management.initialize_gas(T_input, p_input)
+        

@@ -1,7 +1,5 @@
 import cantera as ct
 
-gas = {}
-
 st = ["a", 1, 2, 3, 4, 5, 6]
 station_names = {st[0]:'ambient',
                  st[1]:'inlet',
@@ -18,7 +16,9 @@ comp_air = "02:0.209, N2:0.787, CO2:004"
 comp_fuel = "c12h26:1"
 
 def initialize_gas(T_amp, p_amb):
+    gas = {}
     for station in st:
         gas[station] = (ct.Solution(reaction_mechanism, phase_name))
         gas[station].X = comp_air
         gas[station].TP = T_amp, p_amb
+    return gas
