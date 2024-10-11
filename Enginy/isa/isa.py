@@ -1,8 +1,4 @@
 import numpy as np
-
-# TODO after finishing testing remove matplot
-import matplotlib.pyplot as plt
-
 # Constants
 
 ##Convertion of length units to meters
