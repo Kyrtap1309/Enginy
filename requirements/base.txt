@@ -1,2 +1,3 @@
-flask
-numpy
+flask>=3.03
+numpy>=2.1.2
+cantera>=3.0.1
