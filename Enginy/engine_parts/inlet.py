@@ -72,10 +72,12 @@ class Inlet:
                 self.mach_inlet_output = mach_inlet_output
             elif n_iter < max_iterations:
                 n_iter += 1
+                print(f"Next iteration {n_iter}")
             else:
                 mach_inlet_output = None
                 self.mach_inlet_output = mach_inlet_output
                 print(f"Calculations for output gas velocity in inlet failed")
+                break
         
         return mach_inlet_output, converged
     
