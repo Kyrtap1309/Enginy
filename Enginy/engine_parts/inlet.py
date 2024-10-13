@@ -81,4 +81,5 @@ class Inlet:
         
         return mach_inlet_output, converged
     
-        
+    def plot_T_s(self):
+        pass
