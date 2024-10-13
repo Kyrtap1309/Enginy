@@ -12,7 +12,7 @@ station_names = {st[0]:'ambient',
 reaction_mechanism = "nDodecane_Reitz.yaml"
 phase_name = "nDodecane_IG"
 
-comp_air = "02:0.209, N2:0.787, CO2:004"
+comp_air = "O2:0.209, N2:0.787, CO2:004"
 comp_fuel = "c12h26:1"
 
 def initialize_gas(T_amp, p_amb):

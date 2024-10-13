@@ -2,8 +2,8 @@ import json
 
 
 from ..isa import isa 
-from ..engine_parts import engine_thermo
-from ..engine_parts import gas_management
+from . import engine_thermo
+from . import gas_management
 
 class Inlet:
     def __init__(self, inlet_json):
