@@ -14,6 +14,12 @@ class Inlet:
         """
         with open(inlet_json, 'r') as file:
             self.inlet_data = json.load(file)
+        
+        self.T_input = isa.ISA_T(self.inlet_data["altitude"])
+        self.p_input = isa.ISA_p(self.inlet_data["altitude"])
+        self.M_input = self.inlet_data["M_inlet_input"]
+        self.gas = gas_management.initialize_gas(self.T_input, self.p_input)
+        self.v_input = self.M_input * engine_thermo.get_a(self.gas[gas_management.st[0]])
     
     def mach_inlet(self) -> tuple[float, bool]:
         """
@@ -28,8 +34,5 @@ class Inlet:
         tol = 0.01 #Toleration for convergence
         n_iter = 0 #iteration counter
 
-        T_input = isa.ISA_T(self.inlet_data["altitude"])
-        p_input = isa.ISA_p(self.inlet_data["altitude"])
-        M_input = self.inlet_data["M_inlet_input"]
-        gas = gas_management.initialize_gas(T_input, p_input)
+        V_in = self.M_input * engine_thermo.get_a()
         
