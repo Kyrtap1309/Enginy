@@ -156,3 +156,16 @@ def mach_solver(
         # update velocity calculation with new gas properties
         V_out = V_out_guess
         V_out_guess = mass_flow / (gas_out.density * A)
+
+        #Check convergence
+        if abs(V_out - V_out_guess) < tol:
+            print(f"Mach calculations finished in {n_iter} iterations")
+            converged = True
+            M_out = V_out / get_a(gas_out)
+        elif n_iter < max_iterations:
+            n_iter += 1
+        else:
+            M_out = 0
+            print(f"Inlet calculations failed")
+    
+    return M_out, converged
