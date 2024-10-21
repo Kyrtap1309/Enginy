@@ -1,4 +1,6 @@
 import cantera as ct
+import plotly.graph_objs as go
+
 
 st = ["a", 1, 2, 3, 4, 5, 6]
 station_names = {st[0]:'ambient',
@@ -22,9 +24,6 @@ def initialize_gas(T_amp, p_amb):
         gas[station].X = comp_air
         gas[station].TP = T_amp, p_amb
     return gas
-
-import plotly.graph_objs as go
-import cantera as ct
 
 def plot_T_s(T: list, p: list, X: list, reaction_mechanism, phase_name):
     '''
@@ -52,7 +51,7 @@ def plot_T_s(T: list, p: list, X: list, reaction_mechanism, phase_name):
         # ISOBARS
         curve_P = p[i]
         T_min = int(T[i]) - 100
-        T_max = int(T[i]) + 400
+        T_max = int(T[i]) + 100
     
         s_isobar_data = []
         T_isobar_data = []
@@ -66,9 +65,10 @@ def plot_T_s(T: list, p: list, X: list, reaction_mechanism, phase_name):
         fig.add_trace(go.Scatter(x=s_isobar_data, y=T_isobar_data, 
                                  mode='lines', 
                                  line=dict(color='#31edd8', width=1), 
-                                 opacity=0.35, name=f'Isobar at {p[i]} Pa'))
+                                 opacity=0.35, name=f'Isobar at {p[i]/1000:.3f} kPa'))
         
         # State points (cycle line)
+        dummy_gas.TPX = T[i], p[i], X[i]
         cycle_T[0] = cycle_T[1]
         cycle_s[0] = cycle_s[1]
         cycle_T[1] = dummy_gas.T
@@ -78,16 +78,16 @@ def plot_T_s(T: list, p: list, X: list, reaction_mechanism, phase_name):
             fig.add_trace(go.Scatter(x=cycle_s, y=cycle_T, mode='lines+markers', 
                                      line=dict(dash='dash', color='green', width=1),
                                      marker=dict(size=6),
-                                     name=f'State {i}'))
+                                     name=f'Station name {station_names[st[i]]}'))
 
     # Customize the layout of the plot
     fig.update_layout(
         title='T-s Diagram',
         xaxis_title='Entropy (kJ/kg)',
         yaxis_title='Temperature (K)',
-        xaxis=dict(range=[6800, 8500]),
-        yaxis=dict(title='Temperature (K)'),
-        template='plotly_white'
+        xaxis=dict(autorange=True),
+        yaxis=dict(autorange=True),
+        template='plotly_dark'
     )
     
     return fig
