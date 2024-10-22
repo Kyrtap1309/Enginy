@@ -1,4 +1,4 @@
-flask>=3.03
-numpy>=2.1.2
+flask>=3.0.3
+numpy>=2.0.2
 cantera>=3.0.1
 plotly
