@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 from .engine_parts.inlet import Inlet
-from .utils.constants import available_parts
 
 
 app = Flask(__name__)
+
+available_parts = ["Inlet"]
 
 #Engine parts
 engine_parts = []
