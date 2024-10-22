@@ -4,9 +4,9 @@ from plotly import utils
 from ..isa import isa
 from . import engine_thermo
 from . import gas_management
+from .engine_part import EnginePart
 
-
-class Inlet:
+class Inlet(EnginePart):
     def __init__(self, inlet_data):
         """
         Constructor of inlet of aircraft jet engine
