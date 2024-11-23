@@ -35,9 +35,12 @@ def create_part():
                 
         if part_name == "Compressor":
             inlet_part_index = int(data.pop("inlet_part"))
+            inlet_part = engine_parts[inlet_part_index]["part"]
             data["inlet"] = engine_parts[inlet_part_index]["part"]
+            part = engine_parts_classes[part_name](data, inlet_part)
+        else:
+            part = engine_parts_classes[part_name](data)
 
-        part = engine_parts_classes[part_name](data)
         analysis_result = f"Analysis for {part_name}"  # Analysis' Logic
         engine_parts.append({'part': part, 'name': part_name, 'analysis': analysis_result})
         return redirect(url_for('index'))

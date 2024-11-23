@@ -22,12 +22,12 @@ class Compressor(EnginePart):
         self.M_comp_in = inlet.M_inlet_out
 
         self.st_out, convergence, self.compressor_work = engine_thermo.compressor_solver(
-            gas_in=self.gas["2"],
+            gas_in=self.gas[2],
             n_stages=self.stage_number,
             compress=self.compress,
             comp_eta=self.comp_eta,
             M_in=self.M_comp_in,
-            gas_out=self.gas["3"])
+            gas_out=self.gas[3])
         
     def analyze(self):
         compressor_T = []
