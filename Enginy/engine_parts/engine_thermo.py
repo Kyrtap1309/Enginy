@@ -177,7 +177,7 @@ def compressor_solver(gas_in: ct.Solution,
                       comp_eta: float,
                       M_in: float,
                       gas_out: ct.Solution,
-                      max_iterations: int):
+                      max_iterations: int = 5000):
     
     """
         Calculate output parameters of compressor
@@ -204,6 +204,8 @@ def compressor_solver(gas_in: ct.Solution,
 
     #Pressure ratio per stage
     compress_stage = compress ** (1 / n_stages)
+
+    n_stages = int(n_stages)
 
     # gradually shift pressure towards the initial stages
     stage_multiplier = np.ones(n_stages)
@@ -239,7 +241,7 @@ def compressor_solver(gas_in: ct.Solution,
             T_i = stage_gas.T
 
             gamma = get_gamma(stage_gas)
-            p_total = get_p_total(stage_gas.P, gamma, M_in)
+            p_total = get_p_total(stage_gas.P, gamma, M_in) * compress_stage * stage_multiplier[st_counter] # pressure rise per stage
             T_total = T_total_in / comp_eta * ((p_total / p_total_in) ** ((gamma - 1) / gamma) - 1) + T_total_in
 
             T_static = get_T_static(T_total, gamma, M_in)
@@ -290,7 +292,7 @@ def compressor_solver(gas_in: ct.Solution,
             n_iter += 1
         else:
             converged = True
-            print(f'compressor finished, converged, niter={n_iter}, max delta T={max_delta_t:0.1f}')
+            print(f'compressor finished, converged, niter={n_iter}, max delta T={max_delta_t:0.1f}, pressure p = {p_static}')
         
         
     # update gas_out to pass properties back
