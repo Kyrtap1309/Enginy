@@ -13,6 +13,11 @@
         </select>
     </div>
 
+    <div class="form-group">
+        <label for="user_part_name">Part Name</label>
+        <input type="text" class="form-control" id="user_part_name" name="user_part_name" required>
+    </div>
+
     <div id="form-fields">
         <!-- Default form fields for Inlet -->
         <div class="form-group">
@@ -84,7 +89,7 @@ function updateForm() {
                 <select class="form-control" id="inlet_part" name="inlet_part" required>
                     {% for part in engine_parts %}
                         {% if part.name == 'Inlet' %}
-                            <option value="{{ loop.index0 }}">{{ part.name }} - {{ part.analysis }}</option>
+                            <option value="{{ loop.index0 }}">{{ part.user_part_name }} - {{ part.analysis }}</option>
                         {% endif %}
                     {% endfor %}
                 </select>

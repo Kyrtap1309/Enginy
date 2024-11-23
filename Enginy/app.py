@@ -28,7 +28,8 @@ def create_part():
     if request.method == 'POST':
         data = request.form.to_dict()
         part_name = data.pop("part_name")
-        # Float convertion
+        user_part_name = data.pop("user_part_name")
+        # Float conversion
         for key in data:
             if key != "part_name":
                 data[key] = float(data[key])
@@ -42,7 +43,7 @@ def create_part():
             part = engine_parts_classes[part_name](data)
 
         analysis_result = f"Analysis for {part_name}"  # Analysis' Logic
-        engine_parts.append({'part': part, 'name': part_name, 'analysis': analysis_result})
+        engine_parts.append({'part': part, 'name': part_name, 'user_part_name': user_part_name, 'analysis': analysis_result})
         return redirect(url_for('index'))
     
     return render_template('create_part.html', available_parts=available_parts, engine_parts=engine_parts)

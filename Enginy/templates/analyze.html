@@ -4,20 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>T-s Diagram</title>
-    <link rel="stylesheet" href="../static/css/styles.css"> <!-- CSS Styles -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>  <!-- Loading Plotly.js -->
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 <body>
     <div class="navbar">
         <div class="container">
             <span class="navbar-brand">T-s Diagram</span>
-            <a href = "{{ url_for('index') }}" class="nav-link">Main Page</a>
+            <a href="{{ url_for('index') }}" class="nav-link">Main Page</a>
         </div>
     </div>
 
     <div class="container">
         <h1>T-s Diagram</h1>
-        <div id="graph"></div>  <!-- Plot -->
+        <div id="graph"></div>
     </div>
 
     <div class="footer">
@@ -25,8 +25,8 @@
     </div>
 
     <script>
-        var analysis = {{ analysis|safe }};  // Load Flask data to plot a diagram
-        Plotly.newPlot('graph', analysis);  // Plot rendering
+        var analysis = {{ analysis|safe }};
+        Plotly.newPlot('graph', analysis);
     </script>
 </body>
 </html>
