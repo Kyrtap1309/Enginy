@@ -1,10 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 from .engine_parts.inlet import Inlet
-from .utils.constants import available_parts
+from .engine_parts.compressor import Compressor
 
 
 app = Flask(__name__)
+
+available_parts = ["Inlet", "Compressor"]
 
 #Engine parts
 engine_parts = []
@@ -12,6 +14,7 @@ engine_parts = []
 #Engine parts mapping
 engine_parts_classes = {
     "Inlet": Inlet,
+    "Compressor": Compressor
 }
 
 # Main Page
@@ -24,17 +27,25 @@ def index():
 def create_part():
     if request.method == 'POST':
         data = request.form.to_dict()
+        part_name = data.pop("part_name")
         # Float convertion
         for key in data:
             if key != "part_name":
                 data[key] = float(data[key])
-        part_name = request.form["part_name"]
-        part = engine_parts_classes[part_name](data)
+                
+        if part_name == "Compressor":
+            inlet_part_index = int(data.pop("inlet_part"))
+            inlet_part = engine_parts[inlet_part_index]["part"]
+            data["inlet"] = engine_parts[inlet_part_index]["part"]
+            part = engine_parts_classes[part_name](data, inlet_part)
+        else:
+            part = engine_parts_classes[part_name](data)
+
         analysis_result = f"Analysis for {part_name}"  # Analysis' Logic
         engine_parts.append({'part': part, 'name': part_name, 'analysis': analysis_result})
         return redirect(url_for('index'))
     
-    return render_template('create_part.html', available_parts=available_parts)
+    return render_template('create_part.html', available_parts=available_parts, engine_parts=engine_parts)
 
 @app.route('/delete_part/<int:part_index>', methods=['POST'])
 def delete_part(part_index):
