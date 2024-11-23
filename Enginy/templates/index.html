@@ -14,7 +14,7 @@
 <ul class="list-group">
     {% for part in engine_parts %}
     <li class="list-group-item">
-        <i class="fas fa-plane"></i> <strong>{{ part.name }}</strong> - {{ part.analysis }}
+        <i class="fas fa-plane"></i> <strong>{{ part.name }}</strong> - {{ part.user_part_name }}
         <form method="POST" action="{{ url_for('delete_part', part_index=loop.index0) }}" style="display: inline;">
             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
         </form>
