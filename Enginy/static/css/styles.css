@@ -1,80 +1,105 @@
 /* Reset styles */
 * {
-    box-sizing: border-box; /* Make sure padding and border are included in element's total width and height */
-    margin: 0; /* Remove default margin */
-    padding: 0; /* Remove default padding */
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
 html, body {
-    height: 100%;  /* Set height to 100% */
-    margin: 0;     /* Remove margins */
-    font-family: 'Arial', sans-serif; /* Use a modern font */
-    background-color: #1e1e2f; /* Dark navy blue background for less strain on the eyes */
-    color: #e0e0e0; /* Light grey text color for better contrast */
-    display: flex; /* Use flexbox for layout management */
-    flex-direction: column; /* Stack children vertically */
+    height: 100%;
+    margin: 0;
+    font-family: 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #e0e0e0;
+    display: flex;
+    flex-direction: column;
 }
 
 .navbar {
-    background-color: #007bff; /* Navigation bar color */
+    background: linear-gradient(135deg, #1c92d2, #f2fcfe);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .navbar .navbar-brand, .navbar .nav-link {
-    color: #ffffff !important; /* White text color for navigation items */
+    color: #ffffff !important;
+    font-weight: bold;
 }
 
 .navbar .nav-link:hover {
-    color: #ffcc00 !important; /* Yellow color on hover for navigation links */
+    color: #ffcc00 !important;
 }
 
 .container {
-    flex: 1; /* Allow container to take up remaining space */
-    padding: 20px; /* Add padding for inner content */
+    flex: 1;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 h1 {
-    margin-bottom: 20px; /* Bottom margin for heading */
-    color: #007bff; /* Heading color */
-    text-align: center; /* Center align heading text */
-    font-size: 2.5em; /* Increase font size for the heading */
+    margin-bottom: 20px;
+    color: #1c92d2;
+    text-align: center;
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .alert {
-    background-color: #333; /* Dark background for alerts */
-    color: #ffffff; /* White text color in alerts */
-    border: 1px solid #007bff; /* Blue border for alerts */
-    border-radius: 5px; /* Rounded corners for alerts */
+    background-color: #444;
+    color: #ffffff;
+    border: 1px solid #1c92d2;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .list-group-item {
-    background-color: #2a2a3a; /* Dark background for list items */
-    color: #ffffff; /* White text color for list items */
-    border: 1px solid #444; /* Darker border for list items */
-    border-radius: 5px; /* Rounded corners for list items */
-    margin-bottom: 10px; /* Space between list items */
+    background-color: #2c5364;
+    color: #ffffff;
+    border: 1px solid #444;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .list-group-item:hover {
-    background-color: #444; /* Lighter dark background on hover */
+    background-color: #444;
 }
 
 .btn {
-    background-color: #007bff; /* Blue color for buttons */
-    color: #ffffff; /* White text color for buttons */
-    border: none; /* Remove border */
-    border-radius: 5px; /* Rounded corners for buttons */
-    padding: 10px 20px; /* Padding for buttons */
-    transition: background-color 0.3s; /* Smooth background color transition on hover */
+    background: linear-gradient(135deg, #1c92d2, #f2fcfe);
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    transition: background-color 0.3s, transform 0.3s;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .btn:hover {
-    background-color: #0056b3; /* Darker blue on button hover */
+    background-color: #1c92d2;
+    transform: translateY(-2px);
 }
 
 .footer {
-    height: 60px; /* Set height for the footer */
-    background-color: #007bff; /* Footer background color */
-    color: white; /* White text color in footer */
-    text-align: center; /* Center align footer text */
-    line-height: 60px; /* Center text vertically in footer */
+    height: 60px;
+    background: linear-gradient(135deg, #1c92d2, #f2fcfe);
+    color: white;
+    text-align: center;
+    line-height: 60px;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.form-control {
+    background-color: #2c5364;
+    color: #ffffff;
+    border: 1px solid #444;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.form-control:focus {
+    border-color: #1c92d2;
+    box-shadow: 0 0 8px rgba(28, 146, 210, 0.5);
 }
