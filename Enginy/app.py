@@ -42,8 +42,8 @@ def create_part():
             data["inlet"] = engine_parts[inlet_part_index]["part"]
             part = engine_parts_classes[part_name](data, inlet_part)
 
-        if part_name == "Combustor":
-            compressor_part_index = int(data.pop("compressor_paart"))
+        elif part_name == "Combustor":
+            compressor_part_index = int(data.pop("compressor_part"))
             compressor_part = engine_parts[compressor_part_index]["part"]
             data["compressor"] = engine_parts[compressor_part_index]["part"]
             part = engine_parts_classes[part_name](data, compressor_part)
