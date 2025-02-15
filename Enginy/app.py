@@ -2,11 +2,12 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 from .engine_parts.inlet import Inlet
 from .engine_parts.compressor import Compressor
+from .engine_parts.combustor import Combustor
 
 
 app = Flask(__name__)
 
-available_parts = ["Inlet", "Compressor"]
+available_parts = ["Inlet", "Compressor", "Combustor"]
 
 #Engine parts
 engine_parts = []
@@ -14,7 +15,8 @@ engine_parts = []
 #Engine parts mapping
 engine_parts_classes = {
     "Inlet": Inlet,
-    "Compressor": Compressor
+    "Compressor": Compressor,
+    "Combustor": Combustor
 }
 
 # Main Page
@@ -39,6 +41,13 @@ def create_part():
             inlet_part = engine_parts[inlet_part_index]["part"]
             data["inlet"] = engine_parts[inlet_part_index]["part"]
             part = engine_parts_classes[part_name](data, inlet_part)
+
+        elif part_name == "Combustor":
+            compressor_part_index = int(data.pop("compressor_part"))
+            compressor_part = engine_parts[compressor_part_index]["part"]
+            data["compressor"] = engine_parts[compressor_part_index]["part"]
+            part = engine_parts_classes[part_name](data, compressor_part)
+        
         else:
             part = engine_parts_classes[part_name](data)
 
