@@ -300,3 +300,61 @@ def compressor_solver(gas_in: ct.Solution,
 
 
     return list(zip(stages_T_out, stages_p_out)), converged, compressor_work
+
+def combustor_solver(gas_in: ct.Solution,
+                     V_nominal: float,
+                     M_in: float,
+                     pressure_lost: float,
+                     gas_out: ct.Solution):
+    
+    """
+        Calculate output parameters of combustor
+
+        args:
+            gas_in: Gas at entrance of combustor
+            v_nominal: Nominal velocity of gas at combustor
+            M_in: Mach number at the entrance of compressor
+            pressure_lost: Relative total pressure loss,
+            gas_out: Gas at exit of engine part
+            
+        Return:
+            M_out: Mach number for gas at exit of combustor
+            convergence: Convergence bool
+            gas_out: Cantera solution with updated gas parameters
+
+    """
+
+    tol = 0.01
+    max_iter = 100
+    converged = False
+    n_iter = 0
+
+    gamma_in = get_gamma(gas_in)
+    T_total_in = get_T_total(gas_in.T, gamma_in, M_in)
+    p_total_in = get_p_total(gas_in.P, gamma_in, M_in)
+
+
+    T_total_out = T_total_in
+    p_total_out = p_total_in * (1 - pressure_lost)
+    T_out = gas_in.T
+    p_out = gas_in.P
+
+    while not converged and n_iter <= max_iter:
+
+        gas_out.TP = T_out, p_out
+        a_out = get_a(gas_out)
+        M_out = V_nominal / a_out
+        gamma_out = get_gamma(gas_out)
+        T_out = get_T_static(T_total_out, gamma_out, M_out)
+        p_out = get_p_static(p_total_out, T_out, T_total_out, gamma_out)
+
+        if abs(gas_out.P - p_out) < tol:
+            print(f"Combustor finished, converged, niter = {n_iter}")
+            converged = True
+        elif n_iter < max_iter:
+            n_iter += 1
+        else:
+            M_out = 0
+            print(f"Combustor finished, NOT converged, niter = {n_iter}")
+    
+    return M_out, converged
