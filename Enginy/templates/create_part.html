@@ -107,7 +107,45 @@ function updateForm() {
                 <input type="number" class="form-control" id="comp_eta" name="comp_eta" step="0.01" required>
             </div>
         `;
-    }
+    } else if (partName == "Combustor") {
+        formFields.innerHTML = `
+            <div class="form-group">
+                <label for="inlet_part">Select Compressor Part</label>
+                <select class="form-control" id="compressor_part" name="compressor_part" required>
+                    {% for part in engine_parts %}
+                        {% if part.name == 'Compressor' %}
+                            <option value="{{ loop.index0 }}">{{ part.user_part_name }} - {{ part.analysis }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="throttle_position">Throttle Position</label>
+                <input type="number" class="form-control" id="throttle_position" name="throttle_position" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="mass_flow">Mass Flow</label>
+                <input type="number" class="form-control" id="mass_flow" name="mass_flow" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="V_nominal">Nominal velocity of gas in combustor </label>
+                <input type="number" class="form-control" id="V_nominal" name="V_nominal" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="Pressure_lost">Relative pressure lost </label>
+                <input type="number" class="form-control" id="Pressure_lost" name="Pressure_lost" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="max_f">Maximum fuel - percent of stoichiometric - allowed in burner </label>
+                <input type="number" class="form-control" id="max_f" name="max_f" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="min_f">Minimum fuel - percent of stoich - allowed in burner - flame stability limited </label>
+                <input type="number" class="form-control" id="min_f" name="min_f" step="0.01" required>
+            </div>
+
+        `;
+    } 
 }
 </script>
 {% endblock %}

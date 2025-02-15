@@ -24,8 +24,6 @@ class Combustor(EnginePart):
         self.M_comb_in = self.compressor.M_comp_in
         self.V_nominal = self.combustor_data["V_nominal"]
         self.pressure_lost = self.combustor_data["Pressure_lost"]
-        self.p_amb = isa.ISA_p(self.combustor_data["altitude"])
-        self.t_amb = isa.ISA_T(self.combustor_data["altitude"])
 
         self.gas = compressor.gas
 
