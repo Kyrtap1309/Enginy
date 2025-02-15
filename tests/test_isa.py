@@ -1,7 +1,7 @@
 import pytest
 from math import isclose
 
-from isa.isa import (
+from Enginy.isa.isa import (
     ISA_delta, ISA_p, ISA_theta, ISA_T, ISA_sigma, ISA_rho,
     inv_ISA_delta, inv_ISA_p, inv_ISA_sigma, inv_ISA_rho,
     _handle_units, CONVERT_TO_M, CONVERT_FROM_M, 
