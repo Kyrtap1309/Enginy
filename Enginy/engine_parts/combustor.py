@@ -58,8 +58,6 @@ class Combustor(EnginePart):
             compressor_p.append(self.gas[gas_management.st[x]].P)
             compressor_X.append(self.gas[gas_management.st[x]].X)
 
-            print(compressor_T)
-
         plot = gas_management.plot_T_s(
             compressor_T,
             compressor_p,

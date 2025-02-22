@@ -1,147 +1,38 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>Create a Jet Engine Part</h1>
+<h1>Utwórz część silnika</h1>
 
-<form method="POST">
-    <div class="form-group">
-        <label for="part_name">Select Part</label>
-        <select class="form-control" id="part_name" name="part_name" required onchange="updateForm()">
-            {% for part in available_parts %}
-                <option value="{{ part }}">{{ part }}</option>
-            {% endfor %}
-        </select>
-    </div>
+<label for="part-type-select">Wybierz rodzaj części:</label>
+<select id="part-type-select" class="form-control" onchange="changePartType(this.value)">
+    {% for part in available_parts %}
+        <option value="{{ part }}" {% if current_type == part %}selected{% endif %}>{{ part }}</option>
+    {% endfor %}
+</select>
 
-    <div class="form-group">
-        <label for="user_part_name">Part Name</label>
-        <input type="text" class="form-control" id="user_part_name" name="user_part_name" required>
-    </div>
-
-    <div id="form-fields">
-        <!-- Default form fields for Inlet -->
-        <div class="form-group">
-            <label for="altitude">Altitude (m)</label>
-            <input type="number" class="form-control" id="altitude" name="altitude" step="0.01" required>
-        </div>
-        <div class="form-group">
-            <label for="M_ambient_input">Aircraft Mach Speed(Ma)</label>
-            <input type="number" class="form-control" id="M_ambient_input" name="M_ambient_input" step="0.01" required>
-        </div>
-        <div class="form-group">
-            <label for="mass_flow">Inlet mass flow(kg/s)</label>
-            <input type="number" class="form-control" id="mass_flow" name="mass_flow" required>
-        </div>
-        <div class="form-group">
-            <label for="A1">Inlet air cross-sectional area(m2)</label>
-            <input type="number" class="form-control" id="A1" name="A1" step="0.01" required>
-        </div>
-        <div class="form-group">
-            <label for="A2">Outlet air cross-sectional area / Air compressor face(m2)</label>
-            <input type="number" class="form-control" id="A2" name="A2" step="0.01" required>
-        </div>
-        <div class="form-group">
-            <label for="eta">Efficiency of air inlet</label>
-            <input type="number" class="form-control" id="eta" name="eta" step="0.01" required>
-        </div>
-    </div>
-
-    <button type="submit" class="btn btn-primary">Create Part</button>
+<form method="POST" action="{{ url_for('create_part', type=current_type) }}">
+    {{ form.hidden_tag() }}
+    {% for field in form %}
+        {% if field.type != 'CSRFTokenField' and field.type != 'SubmitField' %}
+            <div class="form-group">
+                {{ field.label(class="form-label") }}
+                {{ field(class="form-control") }}
+                {% if field.errors %}
+                    <ul class="errors">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endif %}
+    {% endfor %}
+    {{ form.submit(class="btn btn-primary") }}
 </form>
 
 <script>
-function updateForm() {
-    const partName = document.getElementById('part_name').value;
-    const formFields = document.getElementById('form-fields');
-    formFields.innerHTML = '';
-
-    if (partName === 'Inlet') {
-        formFields.innerHTML = `
-            <div class="form-group">
-                <label for="altitude">Altitude (m)</label>
-                <input type="number" class="form-control" id="altitude" name="altitude" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="M_ambient_input">Aircraft Mach Speed(Ma)</label>
-                <input type="number" class="form-control" id="M_ambient_input" name="M_ambient_input" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="mass_flow">Inlet mass flow(kg/s)</label>
-                <input type="number" class="form-control" id="mass_flow" name="mass_flow" required>
-            </div>
-            <div class="form-group">
-                <label for="A1">Inlet air cross-sectional area(m2)</label>
-                <input type="number" class="form-control" id="A1" name="A1" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="A2">Outlet air cross-sectional area / Air compressor face(m2)</label>
-                <input type="number" class="form-control" id="A2" name="A2" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="eta">Efficiency of air inlet</label>
-                <input type="number" class="form-control" id="eta" name="eta" step="0.01" required>
-            </div>
-        `;
-    } else if (partName === 'Compressor') {
-        formFields.innerHTML = `
-            <div class="form-group">
-                <label for="inlet_part">Select Inlet Part</label>
-                <select class="form-control" id="inlet_part" name="inlet_part" required>
-                    {% for part in engine_parts %}
-                        {% if part.name == 'Inlet' %}
-                            <option value="{{ loop.index0 }}">{{ part.user_part_name }} - {{ part.analysis }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="comp_n_stages">Number of Stages</label>
-                <input type="number" class="form-control" id="comp_n_stages" name="comp_n_stages" step="1" required>
-            </div>
-            <div class="form-group">
-                <label for="compress">Compression Ratio</label>
-                <input type="number" class="form-control" id="compress" name="compress" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="comp_eta">Compressor Efficiency </label>
-                <input type="number" class="form-control" id="comp_eta" name="comp_eta" step="0.01" required>
-            </div>
-        `;
-    } else if (partName == "Combustor") {
-        formFields.innerHTML = `
-            <div class="form-group">
-                <label for="inlet_part">Select Compressor Part</label>
-                <select class="form-control" id="compressor_part" name="compressor_part" required>
-                    {% for part in engine_parts %}
-                        {% if part.name == 'Compressor' %}
-                            <option value="{{ loop.index0 }}">{{ part.user_part_name }} - {{ part.analysis }}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="throttle_position">Throttle Position</label>
-                <input type="number" class="form-control" id="throttle_position" name="throttle_position" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="V_nominal">Nominal velocity of gas in combustor </label>
-                <input type="number" class="form-control" id="V_nominal" name="V_nominal" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="Pressure_lost">Relative pressure lost </label>
-                <input type="number" class="form-control" id="Pressure_lost" name="Pressure_lost" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="max_f">Maximum fuel - percent of stoichiometric - allowed in burner </label>
-                <input type="number" class="form-control" id="max_f" name="max_f" step="0.01" required>
-            </div>
-            <div class="form-group">
-                <label for="min_f">Minimum fuel - percent of stoich - allowed in burner - flame stability limited </label>
-                <input type="number" class="form-control" id="min_f" name="min_f" step="0.01" required>
-            </div>
-
-        `;
-    } 
+function changePartType(selectedType) {
+    window.location.href = "{{ url_for('create_part') }}" + "?type=" + selectedType;
 }
 </script>
 {% endblock %}

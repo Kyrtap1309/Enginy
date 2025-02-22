@@ -1,83 +1,168 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+import importlib
+import os
+from enum import Enum
+from typing import Dict, List, Union
+from flask import Flask, render_template, request, redirect, url_for, jsonify, Response
+from .engine_parts.engine_part import EnginePart
+from .forms import BasePartForm
 
-from .engine_parts.inlet import Inlet
-from .engine_parts.compressor import Compressor
-from .engine_parts.combustor import Combustor
-
+class EnginePartType(Enum):
+    INLET = "Inlet"
+    COMPRESSOR = "Compressor"
+    COMBUSTOR = "Combustor"
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-key")
 
-available_parts = ["Inlet", "Compressor", "Combustor"]
+# List of available engine parts.
+AVAILABLE_PARTS: List[str] = [e.value for e in EnginePartType]
 
-#Engine parts
-engine_parts = []
-
-#Engine parts mapping
-engine_parts_classes = {
-    "Inlet": Inlet,
-    "Compressor": Compressor,
-    "Combustor": Combustor
+# Dynamically import and map engine part classes.
+ENGINE_PARTS_CLASSES: Dict[str, EnginePart] = {
+    part: getattr(importlib.import_module(f"Enginy.engine_parts.{part.lower()}"), part)
+    for part in AVAILABLE_PARTS
 }
 
-# Main Page
+# Dynamically import and map form classes.
+AVAILABLE_FORMS: Dict[str, BasePartForm] = {
+    part: getattr(importlib.import_module("Enginy.forms"), f"{part}Form")
+    for part in AVAILABLE_PARTS
+}
+
+
+# Global list storing created engine parts.
+engine_parts = []
+
 @app.route('/')
-def index():
+def index() -> str:
+    """
+    Render the main page with a list of created engine parts.
+    
+    Returns:
+        Rendered HTML page showing the engine parts.
+    """
     return render_template('index.html', engine_parts=engine_parts)
 
-# Create Engine Parts
+
 @app.route('/create_part', methods=['GET', 'POST'])
-def create_part():
-    if request.method == 'POST':
-        data = request.form.to_dict()
-        part_name = data.pop("part_name")
-        user_part_name = data.pop("user_part_name")
-        # Float conversion
-        for key in data:
-            if key != "part_name":
-                data[key] = float(data[key])
-                
-        if part_name == "Compressor":
-            inlet_part_index = int(data.pop("inlet_part"))
-            inlet_part = engine_parts[inlet_part_index]["part"]
-            data["inlet"] = engine_parts[inlet_part_index]["part"]
-            part = engine_parts_classes[part_name](data, inlet_part)
-
-        elif part_name == "Combustor":
-            compressor_part_index = int(data.pop("compressor_part"))
-            compressor_part = engine_parts[compressor_part_index]["part"]
-            data["compressor"] = engine_parts[compressor_part_index]["part"]
-            part = engine_parts_classes[part_name](data, compressor_part)
-        
-        else:
-            part = engine_parts_classes[part_name](data)
-
-        analysis_result = f"Analysis for {part_name}"  # Analysis' Logic
-        engine_parts.append({'part': part, 'name': part_name, 'user_part_name': user_part_name, 'analysis': analysis_result})
-        return redirect(url_for('index'))
+def create_part() -> Union[str, Response]:
+    """
+    Create a new engine part by handling GET and POST requests.
     
-    return render_template('create_part.html', available_parts=available_parts, engine_parts=engine_parts)
+    GET:
+        Render the form page to create a new engine part.
+    
+    POST:
+        Validate and process the submitted form data to create the engine part.
+    
+    Returns:
+        - Redirect to the index page after successful creation.
+        - Rendered form page with errors if validation fails.
+    """
+    # Get the type of part from query parameter (default is "Inlet")
+    part_type_str = request.args.get('type', EnginePartType.INLET.value)
+
+    try:
+        part_type = EnginePartType(part_type_str)
+    except ValueError:
+        part_type = EnginePartType.INLET
+    
+    # Get the corresponding form class (defaulting to InletForm) and create an instance.
+    form_class = AVAILABLE_FORMS.get(part_type.value, AVAILABLE_FORMS[EnginePartType.INLET.value])
+    form = form_class()
+
+    # Dynamically set choice lists for dependency fields, e.g., inlet choice for Compressor.
+    for field_name, dependency_name in form.get_dependency_fields().items():
+        choices = [
+            (i, ep["user_part_name"]) 
+            for i, ep in enumerate(engine_parts) 
+            if ep["name"] == dependency_name
+        ]
+        getattr(form, field_name).choices = choices
+
+    if form.validate_on_submit():
+        data = form.data
+        user_part_name = data.pop("user_part_name")
+        data.pop("csrf_token", None)
+        data.pop("submit", None)
+
+        dependencies = {}
+        for field_name, dependency_name in form.get_dependency_fields().items():
+            part_index = data.pop(field_name)
+            dependencies[dependency_name.lower()] = engine_parts[part_index]["part"]
+
+        part_class = ENGINE_PARTS_CLASSES[part_type.value]
+        part_instance = part_class(data, **dependencies)
+
+        engine_parts.append({
+            'part': part_instance,
+            'name': part_type.value,
+            'user_part_name': user_part_name,
+            'analysis': f"Analysis for {part_type.value}"
+        })
+
+        return redirect(url_for('index'))
+
+    return render_template(
+        'create_part.html', 
+        form=form, 
+        available_parts=AVAILABLE_PARTS, 
+        current_type=part_type.value, 
+        engine_parts=engine_parts
+    )
+
 
 @app.route('/delete_part/<int:part_index>', methods=['POST'])
-def delete_part(part_index):
-    # Delete parts
-    if 0 <= part_index < len(engine_parts):
-        engine_parts.pop(part_index)  # Delete from the engine part list
+def delete_part(part_index: int) -> Response:
+    """
+    Delete an existing engine part by its index.
     
+    Args:
+        part_index (int): The index of the engine part to be deleted.
+    
+    Returns:
+        A redirect response to the index page.
+    """
+    if 0 <= part_index < len(engine_parts):
+        engine_parts.pop(part_index)
     return redirect(url_for('index'))
 
+
 @app.route('/analyze_part/<int:part_index>', methods=['GET'])
-def analyze_part(part_index):
+def analyze_part(part_index) -> Union[str, Response]:
+    """
+    Analyze a single engine part and render an analysis page.
+    
+    Args:
+        part_index (int): The index of the engine part to analyze.
+    
+    Returns:
+        Rendered HTML analysis page if valid,
+        Otherwise, a JSON error response.
+    """
     if 0 <= part_index < len(engine_parts):
         analysis = engine_parts[part_index]["part"].analyze()
         return render_template("analyze.html", analysis=analysis)
-    
+    return jsonify({'error': 'Invalid part index'}), 400
 
-# Analysis of whole engine
+
 @app.route('/analyze_engine', methods=['POST'])
-def analyze_engine():
-    if len(engine_parts) < 5:  
+def analyze_engine() -> Response:
+    """
+    PLACEHOLDER
+
+    Perform analysis on the complete engine assembly.
+    
+    Note:
+        At least 5 parts are required to perform a full analysis.
+    
+    Returns:
+        JSON response containing the engine analysis result.
+    """
+    if len(engine_parts) < 5:
         return jsonify({'error': 'Not enough parts to build the engine!'}), 400
-    # Logic of engine analysis
+
+    # Placeholder for complete engine analysis logic.
     engine_analysis_result = "Complete Engine Analysis"
     return jsonify({'result': engine_analysis_result})
 
