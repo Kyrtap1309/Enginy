@@ -1,8 +1,9 @@
 import importlib
+import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "..."
+app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-key")
 
 # List of available engine parts.
 AVAILABLE_PARTS = ["Inlet", "Compressor", "Combustor"]

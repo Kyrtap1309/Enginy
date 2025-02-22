@@ -50,13 +50,23 @@ Before you begin, ensure you have the following installed on your machine:
     pip install -r requiremenets/base.txt
     ```
 
-4. **Run the flask application**:
+4. **Setting Flask Secret Key**
+    For security reasons, the `SECRET_KEY` is not hard-coded and must be provided via the `FLASK_SECRET_KEY` environment variable.
+    ```bash
+    export FLASK_SECRET_KEY="your-secret-key"
+    #On Windows CMD use: setx FLASK_SECRET_KEY "your-secret-key"
+    ```
+
+5. **Run the flask application**:
     ```bash
     cd Enginy #You must be in folder with app.py
     flask run --host=0.0.0.0
     ```
 
-5. **(Optional) Running with Docker**:
+6. **(Optional) Running with Docker**:
+
+    - Set the `FLASK_SECRET_KEY` environment variable via `Dockerfile`
+    
     
     - Build the Docker image (Be sure that working directory points at the folder with Dockerfile):
     ```bash
@@ -65,6 +75,11 @@ Before you begin, ensure you have the following installed on your machine:
     - Run the Docker container:
     ```bash
     docker run -d -p 5000:5000 enginy-app
+    ```
+
+    - You can override `FLASK_SECRET_KEY` env with:
+    ```bash
+    docker run -d -p 5000:5000 -e FLASK_SECRET_KEY="your-secret-key" enginy-app
     ```
 
 ## Usage
