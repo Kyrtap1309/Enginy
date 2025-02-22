@@ -1,12 +1,18 @@
 import importlib
 import os
+from enum import Enum
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+
+class EnginePartType(Enum):
+    INLET = "Inlet"
+    COMPRESSOR = "Compressor"
+    COMBUSTOR = "Combustor"
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-key")
 
 # List of available engine parts.
-AVAILABLE_PARTS = ["Inlet", "Compressor", "Combustor"]
+AVAILABLE_PARTS = [e.value for e in EnginePartType]
 
 # Dynamically import and map engine part classes.
 ENGINE_PARTS_CLASSES = {
@@ -51,10 +57,15 @@ def create_part():
         - Rendered form page with errors if validation fails.
     """
     # Get the type of part from query parameter (default is "Inlet")
-    part_type = request.args.get('type', 'Inlet')
+    part_type_str = request.args.get('type', EnginePartType.INLET.value)
+
+    try:
+        part_type = EnginePartType(part_type_str)
+    except ValueError:
+        part_type = EnginePartType.INLET
     
     # Get the corresponding form class (defaulting to InletForm) and create an instance.
-    form_class = AVAILABLE_FORMS.get(part_type, AVAILABLE_FORMS["Inlet"])
+    form_class = AVAILABLE_FORMS.get(part_type.value, AVAILABLE_FORMS[EnginePartType.INLET.value])
     form = form_class()
 
     # Dynamically set choice lists for dependency fields, e.g., inlet choice for Compressor.
@@ -77,14 +88,14 @@ def create_part():
             part_index = data.pop(field_name)
             dependencies[dependency_name.lower()] = engine_parts[part_index]["part"]
 
-        part_class = ENGINE_PARTS_CLASSES[part_type]
+        part_class = ENGINE_PARTS_CLASSES[part_type.value]
         part_instance = part_class(data, **dependencies)
 
         engine_parts.append({
             'part': part_instance,
-            'name': part_type,
+            'name': part_type.value,
             'user_part_name': user_part_name,
-            'analysis': f"Analysis for {part_type}"
+            'analysis': f"Analysis for {part_type.value}"
         })
 
         return redirect(url_for('index'))
@@ -93,7 +104,7 @@ def create_part():
         'create_part.html', 
         form=form, 
         available_parts=AVAILABLE_PARTS, 
-        current_type=part_type, 
+        current_type=part_type.value, 
         engine_parts=engine_parts
     )
 
