@@ -15,6 +15,12 @@ ENGINE_PARTS_CLASSES = {
     "Combustor": Combustor
 }
 
+AVAILABLE_FORMS = {
+    "Inlet": InletForm,
+    "Compressor": CompressorForm,
+    "Combustor": CombustorForm
+}
+
 # List to store created engine parts.
 engine_parts = []
 
@@ -29,51 +35,52 @@ def index():
 
 @app.route('/create_part', methods=['GET', 'POST'])
 def create_part():
-    # Get desired part type from query parameter (default to Inlet)
+    # Pobranie typu części z parametru (domyślnie "Inlet")
     part_type = request.args.get('type', 'Inlet')
-    if part_type == "Inlet":
-        form = InletForm()
-    elif part_type == "Compressor":
-        form = CompressorForm()
-        # Populate inlet selections from created parts
-        inlet_choices = [(i, ep["user_part_name"]) for i, ep in enumerate(engine_parts) if ep["name"] == "Inlet"]
-        form.inlet_part.choices = inlet_choices
-    elif part_type == "Combustor":
-        form = CombustorForm()
-        # Populate compressor selections from created parts
-        compressor_choices = [(i, ep["user_part_name"]) for i, ep in enumerate(engine_parts) if ep["name"] == "Compressor"]
-        form.compressor_part.choices = compressor_choices
-    else:
-        form = InletForm()
+    
+    # Pobranie odpowiedniego formularza, jeśli nie istnieje - domyślnie InletForm
+    form_class = AVAILABLE_FORMS.get(part_type, AVAILABLE_FORMS["Inlet"])
+    form = form_class()
+
+    # Dynamiczne ustawianie opcji dla pól zależności (np. wybór Inlet dla Compressor)
+    for field_name, dependency_name in form.get_dependency_fields().items():
+        choices = [
+            (i, ep["user_part_name"]) 
+            for i, ep in enumerate(engine_parts) 
+            if ep["name"] == dependency_name
+        ]
+        getattr(form, field_name).choices = choices
 
     if form.validate_on_submit():
         data = form.data
         user_part_name = data.pop("user_part_name")
-        # Remove unneeded keys (csrf_token, submit)
         data.pop("csrf_token", None)
         data.pop("submit", None)
-        if part_type == "Compressor":
-            inlet_index = data.pop("inlet_part")
-            inlet_part = engine_parts[inlet_index]["part"]
-            data["inlet"] = inlet_part
-            part_instance = Compressor(data, inlet_part)
-        elif part_type == "Combustor":
-            compressor_index = data.pop("compressor_part")
-            compressor_part = engine_parts[compressor_index]["part"]
-            data["compressor"] = compressor_part
-            part_instance = Combustor(data, compressor_part)
-        else:
-            part_instance = Inlet(data)
-        analysis_result = f"Analysis for {part_type}"
+
+        dependencies = {}
+        for field_name, dependency_name in form.get_dependency_fields().items():
+            part_index = data.pop(field_name)
+            dependencies[dependency_name.lower()] = engine_parts[part_index]["part"]
+
+        part_class = ENGINE_PARTS_CLASSES[part_type]
+        part_instance = part_class(data, **dependencies)
+
         engine_parts.append({
             'part': part_instance,
             'name': part_type,
             'user_part_name': user_part_name,
-            'analysis': analysis_result
+            'analysis': f"Analysis for {part_type}"
         })
+
         return redirect(url_for('index'))
 
-    return render_template('create_part.html', form=form, available_parts=AVAILABLE_PARTS, current_type=part_type, engine_parts=engine_parts)
+    return render_template(
+        'create_part.html', 
+        form=form, 
+        available_parts=AVAILABLE_PARTS, 
+        current_type=part_type, 
+        engine_parts=engine_parts
+    )
 
 @app.route('/delete_part/<int:part_index>', methods=['POST'])
 def delete_part(part_index):

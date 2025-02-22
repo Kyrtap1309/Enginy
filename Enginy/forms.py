@@ -12,6 +12,10 @@ class InletForm(FlaskForm):
     eta = FloatField('Efficiency of air inlet', validators=[DataRequired()])
     submit = SubmitField('Create Inlet Part')
 
+    @staticmethod
+    def get_dependency_fields():
+        return {}
+
 class CompressorForm(FlaskForm):
     user_part_name = StringField('Part Name', validators=[DataRequired()])
     inlet_part = SelectField('Select Inlet Part', coerce=int, choices=[], validate_choice=None)
@@ -19,6 +23,10 @@ class CompressorForm(FlaskForm):
     compress = FloatField('Compression Ratio', validators=[DataRequired()])
     comp_eta = FloatField('Compressor Efficiency', validators=[DataRequired()])
     submit = SubmitField('Create Compressor Part')
+
+    @staticmethod
+    def get_dependency_fields():
+        return {"inlet_part": "Inlet"}
 
 class CombustorForm(FlaskForm):
     user_part_name = StringField('Part Name', validators=[DataRequired()])
@@ -29,3 +37,7 @@ class CombustorForm(FlaskForm):
     max_f = FloatField('Maximum fuel (%)', validators=[DataRequired()])
     min_f = FloatField('Minimum fuel (%)', validators=[DataRequired()])
     submit = SubmitField('Create Combustor Part')
+
+    @staticmethod
+    def get_dependency_fields():
+        return {"compressor_part": "Compressor"}
