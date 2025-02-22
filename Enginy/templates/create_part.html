@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Utwórz część silnika</h1>
 
-<label for="part-type-select">Wybierz rodzaj części:</label>
+<label for="part-type-select">Choose type of engine part:</label>
 <select id="part-type-select" class="form-control" onchange="changePartType(this.value)">
     {% for part in available_parts %}
         <option value="{{ part }}" {% if current_type == part %}selected{% endif %}>{{ part }}</option>

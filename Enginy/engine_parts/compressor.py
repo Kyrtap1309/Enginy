@@ -1,5 +1,7 @@
 import json
+from typing import Union, Any, List
 from plotly import utils
+from dataclasses import dataclass
 
 from .engine_part import EnginePart
 from . import gas_management, engine_thermo
@@ -7,19 +9,50 @@ from .inlet import Inlet
 
 from ..isa import isa
 
-class Compressor(EnginePart):
-    def __init__(self, compressor_data, inlet: Inlet) -> None:
-        
-        self.inlet = inlet
-        
-        self.compressor_data = compressor_data
+@dataclass
+class CompressorData:
+    """
+    Data class for storing compressor parameters.
 
-        self.stage_number = self.compressor_data["comp_n_stages"]
-        self.compress = self.compressor_data["compress"]
-        self.comp_eta = self.compressor_data["comp_eta"]
+    Attributes:
+        comp_n_stages (int): Number of compressor stages.
+        compress (float): Compression ratio.
+        comp_eta (float): Compressor efficiency.
+    """
+
+    comp_n_stages: int
+    compress: float
+    comp_eta: float
+
+class Compressor(EnginePart):
+    """
+    Represents a compressor component of an aircraft jet engine.
+    """
+    def __init__(self, compressor_data: Union[dict, CompressorData], inlet: Inlet, **kwargs) -> None:
+        """
+        Initialize the Compressor object with provided compressor data and inlet dependency.
+
+        Args:
+            compressor_data (Union[dict, CompressorData]): Dictionary or CompressorData instance containing:
+                - comp_n_stages: Number of compressor stages.
+                - compress: Compression ratio.
+                - comp_eta: Compressor efficiency.
+            inlet (Inlet): An instance of Inlet from which compressor takes gas properties and Mach number.
+            kwargs: Additional keyword arguments.
+        """
+        self.inlet: Inlet = inlet
         
-        self.gas = inlet.gas
-        self.M_comp_in = inlet.M_inlet_out
+        if isinstance(compressor_data, dict):
+            self.compressor_data = CompressorData(**compressor_data)
+        else:
+            self.compressor_data = compressor_data
+
+        self.stage_number: int = self.compressor_data.comp_n_stages
+        self.compress: float = self.compressor_data.compress
+        self.comp_eta: float = self.compressor_data.comp_eta
+        
+        self.gas: List[Any] = inlet.gas
+        self.M_comp_in: float = inlet.M_inlet_out
 
         self.st_out, convergence, self.compressor_work = engine_thermo.compressor_solver(
             gas_in=self.gas[2],
@@ -29,10 +62,19 @@ class Compressor(EnginePart):
             M_in=self.M_comp_in,
             gas_out=self.gas[3])
         
-    def analyze(self):
-        compressor_T = []
-        compressor_p = []
-        compressor_X = []
+    def analyze(self) -> str:
+        """
+        Analyze the compressor parameters and produce a JSON encoded plot.
+
+        Iterates over selected gas stages to collect temperature, pressure, and composition data.
+        Generates a plot using the gas management module.
+
+        Returns:
+            str: JSON-encoded plot of the compressor analysis.
+        """
+        compressor_T: List[float] = []
+        compressor_p: List[float] = []
+        compressor_X: List[Any] = []
 
         for x in range(0, 4):
             compressor_T.append(self.gas[gas_management.st[x]].T)
@@ -47,7 +89,7 @@ class Compressor(EnginePart):
             gas_management.phase_name,
         )
 
-        graphJSON = json.dumps(plot, cls = utils.PlotlyJSONEncoder)
+        graphJSON: str = json.dumps(plot, cls = utils.PlotlyJSONEncoder)
         return graphJSON
 
                                                                                          
