@@ -1,4 +1,6 @@
 import json
+from dataclasses import dataclass
+from typing import Union
 from plotly import utils
 
 from . import engine_thermo
@@ -6,25 +8,36 @@ from . import gas_management
 from .engine_part import EnginePart
 from .compressor import Compressor
 
+@dataclass
+class CombustorData:
+    throttle_position: float
+    V_nominal: float
+    Pressure_lost: float
+    max_f: float
+    min_f: float
+
 class Combustor(EnginePart):
     """
     Combustor of Jet Engine
     """
-    def __init__(self, combustor_data, compressor: Compressor):
+    def __init__(self, combustor_data: Union[dict, CombustorData], compressor: Compressor, **kwargs):
         
         self.compressor = compressor 
 
-        self.combustor_data = combustor_data
+        if isinstance(combustor_data, dict):
+            self.combustor_data = CombustorData(**combustor_data)
+        else:
+            self.combustor_data = combustor_data
 
-        self.throttle_position = self.combustor_data["throttle_position"]
+        self.throttle_position = self.combustor_data.throttle_position
         self.M_comb_in = self.compressor.M_comp_in
-        self.V_nominal = self.combustor_data["V_nominal"]
-        self.pressure_lost = self.combustor_data["Pressure_lost"]
+        self.V_nominal = self.combustor_data.V_nominal
+        self.pressure_lost = self.combustor_data.Pressure_lost
 
         self.gas = compressor.gas
 
-        self.max_fuel = self.combustor_data['max_f']
-        self.min_fuel = self.combustor_data['min_f']
+        self.max_fuel = self.combustor_data.max_f
+        self.min_fuel = self.combustor_data.min_f
 
         self._gas_update()
 
