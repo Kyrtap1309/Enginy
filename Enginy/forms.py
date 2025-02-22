@@ -1,8 +1,15 @@
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, FloatField, IntegerField, SubmitField
 from wtforms.validators import DataRequired
+from abc import ABC, abstractmethod
 
-class InletForm(FlaskForm):
+class BasePartForm(FlaskForm, ABC):
+    @staticmethod  
+    @abstractmethod
+    def get_dependency_fields():
+        pass
+
+class InletForm(BasePartForm):
     user_part_name = StringField('Part Name', validators=[DataRequired()])
     altitude = FloatField('Altitude (m)', validators=[DataRequired()])
     M_ambient_input = FloatField('Aircraft Mach Speed (Ma)', validators=[DataRequired()])
@@ -16,7 +23,7 @@ class InletForm(FlaskForm):
     def get_dependency_fields():
         return {}
 
-class CompressorForm(FlaskForm):
+class CompressorForm(BasePartForm):
     user_part_name = StringField('Part Name', validators=[DataRequired()])
     inlet_part = SelectField('Select Inlet Part', coerce=int, choices=[], validate_choice=None)
     comp_n_stages = IntegerField('Number of Stages', validators=[DataRequired()])
@@ -28,7 +35,7 @@ class CompressorForm(FlaskForm):
     def get_dependency_fields():
         return {"inlet_part": "Inlet"}
 
-class CombustorForm(FlaskForm):
+class CombustorForm(BasePartForm):
     user_part_name = StringField('Part Name', validators=[DataRequired()])
     compressor_part = SelectField('Select Compressor Part', coerce=int, validate_choice=None)
     throttle_position = FloatField('Throttle Position', validators=[DataRequired()])
