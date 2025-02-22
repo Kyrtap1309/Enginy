@@ -1,4 +1,5 @@
 import json
+from dataclasses import dataclass
 from plotly import utils
 
 from ..isa import isa
@@ -6,21 +7,33 @@ from . import engine_thermo
 from . import gas_management
 from .engine_part import EnginePart
 
+@dataclass
+class InletData:
+    altitude: float
+    M_ambient_input: float
+    mass_flow: float
+    A1: float
+    A2: float
+    eta: float
+
+
 class Inlet(EnginePart):
-    def __init__(self, inlet_data):
+    def __init__(self, inlet_data, **kwargs):
         """
         Constructor of inlet of aircraft jet engine
     
         """
-        self.inlet_data = inlet_data
 
-        self.T_ambient = isa.ISA_T(self.inlet_data["altitude"])
-        self.p_ambient = isa.ISA_p(self.inlet_data["altitude"])
-        self.M_ambient = self.inlet_data["M_ambient_input"]
-        self.mass_flow = self.inlet_data["mass_flow"]
-        self.A_1 = self.inlet_data["A1"]
-        self.A_2 = self.inlet_data["A2"]
-        self.inlet_eta = self.inlet_data["eta"]
+        self.inlet_data = InletData(**inlet_data)
+
+
+        self.T_ambient = isa.ISA_T(self.inlet_data.altitude)
+        self.p_ambient = isa.ISA_p(self.inlet_data.altitude)
+        self.M_ambient = self.inlet_data.M_ambient_input
+        self.mass_flow = self.inlet_data.mass_flow
+        self.A_1 = self.inlet_data.A1
+        self.A_2 = self.inlet_data.A2
+        self.inlet_eta = self.inlet_data.eta
         self.gas = gas_management.initialize_gas(self.T_ambient, self.p_ambient)
 
         _ambient_stage_index = gas_management.st[0]
