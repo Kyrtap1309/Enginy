@@ -1,4 +1,5 @@
 import json
+from typing import Union
 from dataclasses import dataclass
 from plotly import utils
 
@@ -18,13 +19,29 @@ class InletData:
 
 
 class Inlet(EnginePart):
-    def __init__(self, inlet_data, **kwargs):
+    """
+    Represents an inlet component of an aircraft jet engine.
+    """
+
+    def __init__(self, inlet_data: Union[dict, InletData], **kwargs) -> None:
         """
-        Constructor of inlet of aircraft jet engine
-    
+        Initialize the Inlet object with provided inlet data.
+
+        Args:
+            inlet_data (Union[dict, InletData]): Dictionary or InletData instance containing:
+                - altitude: Altitude in meters.
+                - M_ambient_input: Ambient Mach number.
+                - mass_flow: Mass flow rate.
+                - A1: Inlet cross-sectional area.
+                - A2: Outlet cross-sectional area.
+                - eta: Inlet efficiency.
+            kwargs: Additional keyword arguments.
         """
 
-        self.inlet_data = InletData(**inlet_data)
+        if isinstance(inlet_data, dict):
+            self.inlet_data = InletData(**inlet_data)
+        else:
+            self.inlet_data = inlet_data
 
 
         self.T_ambient = isa.ISA_T(self.inlet_data.altitude)
@@ -57,7 +74,12 @@ class Inlet(EnginePart):
         self.mach_inlet_from_ambient_to_entrance()
         self.mach_inlet_from_entrance_to_output()
 
-    def mach_inlet_from_ambient_to_entrance(self):
+    def mach_inlet_from_ambient_to_entrance(self) -> None:
+        """
+        Compute the Mach number from ambient conditions to inlet entrance.
+
+        Uses the mach solver to compute the Mach number and assigns it to M_inlet_in if convergence is achieved.
+        """
         M_calc, convergence = engine_thermo.mach_solver(
             self.mass_flow,
             self.A_1,
@@ -70,7 +92,12 @@ class Inlet(EnginePart):
         if convergence:
             self.M_inlet_in = M_calc
 
-    def mach_inlet_from_entrance_to_output(self):
+    def mach_inlet_from_entrance_to_output(self) -> None:
+        """
+        Compute the Mach number from inlet entrance to outlet.
+
+        Uses the mach solver to compute the Mach number and assigns it to M_inlet_out if convergence is achieved.
+        """
         M_calc, convergence = engine_thermo.mach_solver(
             self.mass_flow,
             self.A_2,
@@ -83,7 +110,16 @@ class Inlet(EnginePart):
         if convergence:
             self.M_inlet_out = M_calc
 
-    def analyze(self):
+    def analyze(self) -> str:
+        """
+        Analyze the inlet parameters and produce a JSON encoded plot.
+
+        Iterates over selected gas stages to collect temperature, pressure, and composition data.
+        Generates a plot using the gas management module.
+
+        Returns:
+            str: JSON-encoded plot of the inlet analysis.
+        """
         inlet_T = []
         inlet_p = []
         inlet_X = []
