@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, FloatField, IntegerField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, NumberRange
 from abc import ABCMeta, abstractmethod
 
 # Combine the ABCMeta with the FlaskForm metaclass to support abstract methods.
@@ -39,12 +39,12 @@ class InletForm(BasePartForm):
         eta: Efficiency of the inlet.
     """
     user_part_name = StringField('Part Name', validators=[DataRequired()])
-    altitude = FloatField('Altitude (m)', validators=[DataRequired()])
-    M_ambient_input = FloatField('Aircraft Mach Speed (Ma)', validators=[DataRequired()])
-    mass_flow = FloatField('Inlet mass flow (kg/s)', validators=[DataRequired()])
-    A1 = FloatField('Inlet air cross-sectional area (m²)', validators=[DataRequired()])
-    A2 = FloatField('Outlet air cross-sectional area (m²)', validators=[DataRequired()])
-    eta = FloatField('Efficiency of air inlet', validators=[DataRequired()])
+    altitude = FloatField('Altitude (m)', validators=[DataRequired(), NumberRange(0, 15_000)])
+    M_ambient_input = FloatField('Aircraft Mach Speed (Ma)', validators=[DataRequired(), NumberRange(0, 5)])
+    mass_flow = FloatField('Inlet mass flow (kg/s)', validators=[DataRequired(), NumberRange(0, 250)])
+    A1 = FloatField('Inlet air cross-sectional area (m²)', validators=[DataRequired(), NumberRange(0.05, 20)])
+    A2 = FloatField('Outlet air cross-sectional area (m²)', validators=[DataRequired(), NumberRange(0.05, 20)])
+    eta = FloatField('Efficiency of air inlet', validators=[DataRequired(), NumberRange(0, 1)])
     submit = SubmitField('Create Inlet Part')
 
     @classmethod
@@ -70,9 +70,9 @@ class CompressorForm(BasePartForm):
     """
     user_part_name = StringField('Part Name', validators=[DataRequired()])
     inlet_part = SelectField('Select Inlet Part', coerce=int, choices=[], validate_choice=None)
-    comp_n_stages = IntegerField('Number of Stages', validators=[DataRequired()])
-    compress = FloatField('Compression Ratio', validators=[DataRequired()])
-    comp_eta = FloatField('Compressor Efficiency', validators=[DataRequired()])
+    comp_n_stages = IntegerField('Number of Stages', validators=[DataRequired(), NumberRange(1, 20)])
+    compress = FloatField('Compression Ratio', validators=[DataRequired(), NumberRange(0.5, 40)])
+    comp_eta = FloatField('Compressor Efficiency', validators=[DataRequired(), NumberRange(0, 1)])
     submit = SubmitField('Create Compressor Part')
 
     @classmethod
@@ -98,11 +98,11 @@ class CombustorForm(BasePartForm):
     """
     user_part_name = StringField('Part Name', validators=[DataRequired()])
     compressor_part = SelectField('Select Compressor Part', coerce=int, validate_choice=None)
-    throttle_position = FloatField('Throttle Position', validators=[DataRequired()])
-    V_nominal = FloatField('Nominal velocity in combustor', validators=[DataRequired()])
-    Pressure_lost = FloatField('Relative pressure lost', validators=[DataRequired()])
-    max_f = FloatField('Maximum fuel (%)', validators=[DataRequired()])
-    min_f = FloatField('Minimum fuel (%)', validators=[DataRequired()])
+    throttle_position = FloatField('Throttle Position', validators=[DataRequired(), NumberRange(0, 1)])
+    V_nominal = FloatField('Nominal velocity in combustor(m/s)', validators=[DataRequired(), NumberRange(0, 1000)])
+    Pressure_lost = FloatField('Relative pressure lost', validators=[DataRequired(), NumberRange(0, 1)])
+    max_f = FloatField('Relative maximum fuel', validators=[DataRequired(), NumberRange(0, 1)])
+    min_f = FloatField('Relative minimum fuel', validators=[DataRequired(), NumberRange(0, 1)])
     submit = SubmitField('Create Combustor Part')
 
     @classmethod
