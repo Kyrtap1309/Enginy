@@ -1,27 +1,27 @@
+import importlib
+
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-from .engine_parts.inlet import Inlet
-from .engine_parts.compressor import Compressor
-from .engine_parts.combustor import Combustor
-from .forms import InletForm, CompressorForm, CombustorForm
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "..."
 
-# Available engine part types and their corresponding classes.
+
 AVAILABLE_PARTS = ["Inlet", "Compressor", "Combustor"]
+
 ENGINE_PARTS_CLASSES = {
-    "Inlet": Inlet,
-    "Compressor": Compressor,
-    "Combustor": Combustor
+    part: getattr(importlib.import_module(f"Enginy.engine_parts.{part.lower()}"), part)
+    for part in AVAILABLE_PARTS
 }
 
 AVAILABLE_FORMS = {
-    "Inlet": InletForm,
-    "Compressor": CompressorForm,
-    "Combustor": CombustorForm
+    part: getattr(importlib.import_module("Enginy.forms"), f"{part}Form")
+    for part in AVAILABLE_PARTS
 }
 
-# List to store created engine parts.
+print(ENGINE_PARTS_CLASSES)
+print(AVAILABLE_FORMS)
+
+
 engine_parts = []
 
 

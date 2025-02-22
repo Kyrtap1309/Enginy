@@ -1,12 +1,16 @@
 from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, FloatField, IntegerField, SubmitField
 from wtforms.validators import DataRequired
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
-class BasePartForm(FlaskForm, ABC):
-    @staticmethod  
+# Łączymy metaklasę ABCMeta z metaklasą FlaskForm
+class FormMeta(ABCMeta, type(FlaskForm)):
+    pass
+
+class BasePartForm(FlaskForm, metaclass=FormMeta):
+    @classmethod
     @abstractmethod
-    def get_dependency_fields():
+    def get_dependency_fields(cls):
         pass
 
 class InletForm(BasePartForm):
@@ -19,8 +23,8 @@ class InletForm(BasePartForm):
     eta = FloatField('Efficiency of air inlet', validators=[DataRequired()])
     submit = SubmitField('Create Inlet Part')
 
-    @staticmethod
-    def get_dependency_fields():
+    @classmethod
+    def get_dependency_fields(cls):
         return {}
 
 class CompressorForm(BasePartForm):
@@ -31,8 +35,8 @@ class CompressorForm(BasePartForm):
     comp_eta = FloatField('Compressor Efficiency', validators=[DataRequired()])
     submit = SubmitField('Create Compressor Part')
 
-    @staticmethod
-    def get_dependency_fields():
+    @classmethod
+    def get_dependency_fields(cls):
         return {"inlet_part": "Inlet"}
 
 class CombustorForm(BasePartForm):
@@ -45,6 +49,6 @@ class CombustorForm(BasePartForm):
     min_f = FloatField('Minimum fuel (%)', validators=[DataRequired()])
     submit = SubmitField('Create Combustor Part')
 
-    @staticmethod
-    def get_dependency_fields():
+    @classmethod
+    def get_dependency_fields(cls):
         return {"compressor_part": "Compressor"}
