@@ -1,7 +1,10 @@
 import importlib
 import os
 from enum import Enum
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from typing import Dict, List, Union
+from flask import Flask, render_template, request, redirect, url_for, jsonify, Response
+from .engine_parts.engine_part import EnginePart
+from .forms import BasePartForm
 
 class EnginePartType(Enum):
     INLET = "Inlet"
@@ -12,16 +15,16 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-key")
 
 # List of available engine parts.
-AVAILABLE_PARTS = [e.value for e in EnginePartType]
+AVAILABLE_PARTS: List[str] = [e.value for e in EnginePartType]
 
 # Dynamically import and map engine part classes.
-ENGINE_PARTS_CLASSES = {
+ENGINE_PARTS_CLASSES: Dict[str, EnginePart] = {
     part: getattr(importlib.import_module(f"Enginy.engine_parts.{part.lower()}"), part)
     for part in AVAILABLE_PARTS
 }
 
 # Dynamically import and map form classes.
-AVAILABLE_FORMS = {
+AVAILABLE_FORMS: Dict[str, BasePartForm] = {
     part: getattr(importlib.import_module("Enginy.forms"), f"{part}Form")
     for part in AVAILABLE_PARTS
 }
@@ -31,7 +34,7 @@ AVAILABLE_FORMS = {
 engine_parts = []
 
 @app.route('/')
-def index():
+def index() -> str:
     """
     Render the main page with a list of created engine parts.
     
@@ -42,7 +45,7 @@ def index():
 
 
 @app.route('/create_part', methods=['GET', 'POST'])
-def create_part():
+def create_part() -> Union[str, Response]:
     """
     Create a new engine part by handling GET and POST requests.
     
@@ -110,7 +113,7 @@ def create_part():
 
 
 @app.route('/delete_part/<int:part_index>', methods=['POST'])
-def delete_part(part_index):
+def delete_part(part_index: int) -> Response:
     """
     Delete an existing engine part by its index.
     
@@ -126,7 +129,7 @@ def delete_part(part_index):
 
 
 @app.route('/analyze_part/<int:part_index>', methods=['GET'])
-def analyze_part(part_index):
+def analyze_part(part_index) -> Union[str, Response]:
     """
     Analyze a single engine part and render an analysis page.
     
@@ -144,7 +147,7 @@ def analyze_part(part_index):
 
 
 @app.route('/analyze_engine', methods=['POST'])
-def analyze_engine():
+def analyze_engine() -> Response:
     """
     PLACEHOLDER
 

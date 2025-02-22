@@ -2,6 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import SelectField, StringField, FloatField, IntegerField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 from abc import ABCMeta, abstractmethod
+from typing import Dict
 
 # Combine the ABCMeta with the FlaskForm metaclass to support abstract methods.
 class FormMeta(ABCMeta, type(FlaskForm)):
@@ -16,7 +17,7 @@ class BasePartForm(FlaskForm, metaclass=FormMeta):
     """
     @classmethod
     @abstractmethod
-    def get_dependency_fields(cls):
+    def get_dependency_fields(cls) -> Dict[str, str]:
         """
         Return a dictionary mapping dependent field names to required part types.
         
@@ -48,7 +49,7 @@ class InletForm(BasePartForm):
     submit = SubmitField('Create Inlet Part')
 
     @classmethod
-    def get_dependency_fields(cls):
+    def get_dependency_fields(cls) -> Dict[str, str]:
         """
         Inlet form does not have dependency fields.
         
@@ -76,7 +77,7 @@ class CompressorForm(BasePartForm):
     submit = SubmitField('Create Compressor Part')
 
     @classmethod
-    def get_dependency_fields(cls):
+    def get_dependency_fields(cls) -> Dict[str, str]:
         """
         Returns:
             A dictionary indicating that the field 'inlet_part' depends on an 'Inlet' part.
@@ -106,7 +107,7 @@ class CombustorForm(BasePartForm):
     submit = SubmitField('Create Combustor Part')
 
     @classmethod
-    def get_dependency_fields(cls):
+    def get_dependency_fields(cls) -> Dict[str, str]:
         """
         Returns:
             A dictionary indicating that the field 'compressor_part' depends on a 'Compressor' part.
