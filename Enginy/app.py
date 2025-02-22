@@ -1,48 +1,62 @@
 import importlib
-
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "..."
 
-
+# List of available engine parts.
 AVAILABLE_PARTS = ["Inlet", "Compressor", "Combustor"]
 
+# Dynamically import and map engine part classes.
 ENGINE_PARTS_CLASSES = {
     part: getattr(importlib.import_module(f"Enginy.engine_parts.{part.lower()}"), part)
     for part in AVAILABLE_PARTS
 }
 
+# Dynamically import and map form classes.
 AVAILABLE_FORMS = {
     part: getattr(importlib.import_module("Enginy.forms"), f"{part}Form")
     for part in AVAILABLE_PARTS
 }
 
-print(ENGINE_PARTS_CLASSES)
-print(AVAILABLE_FORMS)
 
-
+# Global list storing created engine parts.
 engine_parts = []
-
 
 @app.route('/')
 def index():
     """
-    Render the main page with the list of engine parts.
+    Render the main page with a list of created engine parts.
+    
+    Returns:
+        Rendered HTML page showing the engine parts.
     """
     return render_template('index.html', engine_parts=engine_parts)
 
 
 @app.route('/create_part', methods=['GET', 'POST'])
 def create_part():
-    # Pobranie typu części z parametru (domyślnie "Inlet")
+    """
+    Create a new engine part by handling GET and POST requests.
+    
+    GET:
+        Render the form page to create a new engine part.
+    
+    POST:
+        Validate and process the submitted form data to create the engine part.
+    
+    Returns:
+        - Redirect to the index page after successful creation.
+        - Rendered form page with errors if validation fails.
+    """
+    # Get the type of part from query parameter (default is "Inlet")
     part_type = request.args.get('type', 'Inlet')
     
-    # Pobranie odpowiedniego formularza, jeśli nie istnieje - domyślnie InletForm
+    # Get the corresponding form class (defaulting to InletForm) and create an instance.
     form_class = AVAILABLE_FORMS.get(part_type, AVAILABLE_FORMS["Inlet"])
     form = form_class()
 
-    # Dynamiczne ustawianie opcji dla pól zależności (np. wybór Inlet dla Compressor)
+    # Dynamically set choice lists for dependency fields, e.g., inlet choice for Compressor.
     for field_name, dependency_name in form.get_dependency_fields().items():
         choices = [
             (i, ep["user_part_name"]) 
@@ -82,10 +96,17 @@ def create_part():
         engine_parts=engine_parts
     )
 
+
 @app.route('/delete_part/<int:part_index>', methods=['POST'])
 def delete_part(part_index):
     """
-    Delete an engine part given its index.
+    Delete an existing engine part by its index.
+    
+    Args:
+        part_index (int): The index of the engine part to be deleted.
+    
+    Returns:
+        A redirect response to the index page.
     """
     if 0 <= part_index < len(engine_parts):
         engine_parts.pop(part_index)
@@ -95,7 +116,14 @@ def delete_part(part_index):
 @app.route('/analyze_part/<int:part_index>', methods=['GET'])
 def analyze_part(part_index):
     """
-    Analyze a single engine part and render the analyze template.
+    Analyze a single engine part and render an analysis page.
+    
+    Args:
+        part_index (int): The index of the engine part to analyze.
+    
+    Returns:
+        Rendered HTML analysis page if valid,
+        Otherwise, a JSON error response.
     """
     if 0 <= part_index < len(engine_parts):
         analysis = engine_parts[part_index]["part"].analyze()
@@ -106,12 +134,20 @@ def analyze_part(part_index):
 @app.route('/analyze_engine', methods=['POST'])
 def analyze_engine():
     """
-    Perform analysis on the entire engine. At least 5 parts are required.
+    PLACEHOLDER
+
+    Perform analysis on the complete engine assembly.
+    
+    Note:
+        At least 5 parts are required to perform a full analysis.
+    
+    Returns:
+        JSON response containing the engine analysis result.
     """
     if len(engine_parts) < 5:
         return jsonify({'error': 'Not enough parts to build the engine!'}), 400
 
-    # Replace with comprehensive engine analysis logic as needed.
+    # Placeholder for complete engine analysis logic.
     engine_analysis_result = "Complete Engine Analysis"
     return jsonify({'result': engine_analysis_result})
 
