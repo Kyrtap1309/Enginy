@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "Enginy"
+version = "0.1.0"
+description = "Flask-based Web Application for Jet Engine Thermodynamic Calculations"
+authors = ["Patryk Niczke <kyrtap1301@gmail.com>"]
+readme = "README.md"
+package-mode=false
+
+[tool.poetry.dependencies]
+python = "^3.9"
+flask = ">=3.0.3"
+wtforms = "^3.2.1"
+flask-wtf = "^1.2.2"
+numpy = ">=2.0.2"
+cantera = ">=3.0.1"
+plotly = "^6.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
