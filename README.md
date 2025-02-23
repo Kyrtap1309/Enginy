@@ -32,6 +32,7 @@ Before you begin, ensure you have the following installed on your machine:
 - Python 3.9 or later
 - Pip (Python package installer)
 - Docker (optional, for containerized deployment)
+- Poetry
 
 ### Steps to Set Up
 
@@ -40,14 +41,17 @@ Before you begin, ensure you have the following installed on your machine:
    git clone https://github.com/Kyrtap1309/Enginy.git
    cd Enginy
     ```
-2. **Create a virtual environment**:
+2. **Install poetry**:
     ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    pip install poetry
+    ```
 
-3. **Install the required dependencies**:
+3. **Install the required dependencies and activate virtual environment**:
     ```bash
-    pip install -r requiremenets/base.txt
+    poetry install
+    ```
+    ```bash
+    poetry shell
     ```
 
 4. **Setting Flask Secret Key**
