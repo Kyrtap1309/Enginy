@@ -1,6 +1,0 @@
-flask>=3.0.3
-wtforms
-flask-wtf
-numpy>=2.0.2
-cantera>=3.0.1
-plotly
