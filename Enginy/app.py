@@ -2,7 +2,7 @@ import importlib
 import os
 from enum import Enum
 from typing import Dict, List, Union
-from flask import Flask, render_template, request, redirect, url_for, jsonify, Response
+from flask import Flask, render_template, request, redirect, url_for, jsonify, Response, flash, session
 from .engine_parts.engine_part import EnginePart
 from .forms import BasePartForm
 
@@ -41,7 +41,11 @@ def index() -> str:
     Returns:
         Rendered HTML page showing the engine parts.
     """
-    return render_template('index.html', engine_parts=engine_parts)
+    show_welcome = False
+    if not session.get("welcome_shown"):
+        show_welcome = True
+        session["welcome_shown"] = True
+    return render_template('index.html', engine_parts=engine_parts, show_welcome=show_welcome)
 
 
 @app.route('/create_part', methods=['GET', 'POST'])
@@ -101,6 +105,7 @@ def create_part() -> Union[str, Response]:
             'analysis': f"Analysis for {part_type.value}"
         })
 
+        flash(f'{part_type.value} created successfully!', 'success')
         return redirect(url_for('index'))
 
     return render_template(
@@ -124,7 +129,10 @@ def delete_part(part_index: int) -> Response:
         A redirect response to the index page.
     """
     if 0 <= part_index < len(engine_parts):
-        engine_parts.pop(part_index)
+        removed_part = engine_parts.pop(part_index)
+        flash(f'{removed_part["name"]} "{removed_part["user_part_name"]}" deleted successfully!', 'success')
+    else:
+        flash("Invalid part index for deletion.", 'danger')
     return redirect(url_for('index'))
 
 
@@ -142,7 +150,9 @@ def analyze_part(part_index) -> Union[str, Response]:
     """
     if 0 <= part_index < len(engine_parts):
         analysis = engine_parts[part_index]["part"].analyze()
+        flash("Analysis completed successfully!", 'success')
         return render_template("analyze.html", analysis=analysis)
+    flash("Invalid part index.", "danger")
     return jsonify({'error': 'Invalid part index'}), 400
 
 
@@ -160,10 +170,12 @@ def analyze_engine() -> Response:
         JSON response containing the engine analysis result.
     """
     if len(engine_parts) < 5:
+        flash("Not enough parts to build the engine!", "danger")
         return jsonify({'error': 'Not enough parts to build the engine!'}), 400
 
     # Placeholder for complete engine analysis logic.
     engine_analysis_result = "Complete Engine Analysis"
+    flash("Complete engine analysis completed successfully!", 'success')
     return jsonify({'result': engine_analysis_result})
 
 
