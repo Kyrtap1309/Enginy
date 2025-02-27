@@ -3,11 +3,13 @@
 {% block content %}
 <h1 class="mb-4">Jet Engine Parts</h1>
 
+{% if show_welcome %}
 <div class="alert alert-info">
     <h4 class="alert-heading">Welcome to the Jet Engine Analysis App!</h4>
     <p>This application allows you to create and analyze various parts of a jet engine. You can combine them to simulate a complete engine and perform a comprehensive analysis.</p>
     <hr>
 </div>
+{% endif %}
 
 <h1>Existing Parts</h1>
 {% if engine_parts %}
