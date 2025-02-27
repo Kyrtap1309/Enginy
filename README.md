@@ -43,7 +43,11 @@ Before you begin, ensure you have the following installed on your machine:
     ```
 2. **Install poetry**:
     ```bash
-    pip install poetry
+    curl -sSL https://install.python-poetry.org | python3 -
+    ```
+    On Windows, use this:
+     ```bash
+    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | python -
     ```
 
 3. **Install the required dependencies and activate virtual environment**:
