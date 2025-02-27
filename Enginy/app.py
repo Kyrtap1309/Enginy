@@ -2,7 +2,7 @@ import importlib
 import os
 from enum import Enum
 from typing import Dict, List, Union
-from flask import Flask, render_template, request, redirect, url_for, jsonify, Response, flash
+from flask import Flask, render_template, request, redirect, url_for, jsonify, Response, flash, session
 from .engine_parts.engine_part import EnginePart
 from .forms import BasePartForm
 
@@ -41,7 +41,11 @@ def index() -> str:
     Returns:
         Rendered HTML page showing the engine parts.
     """
-    return render_template('index.html', engine_parts=engine_parts)
+    show_welcome = False
+    if not session.get("welcome_shown"):
+        show_welcome = True
+        session["welcome_shown"] = True
+    return render_template('index.html', engine_parts=engine_parts, show_welcome=show_welcome)
 
 
 @app.route('/create_part', methods=['GET', 'POST'])
