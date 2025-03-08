@@ -36,6 +36,30 @@ def start_mongodb_container():
     time.sleep(3)
     return True
 
+def setup_environment():
+    """Setup virtual environment if needed"""
+    if os.path.exists("poetry.lock"):
+        print("Poetry lock file found, using Poetry...")
+        try:
+            # Install dependencies if not already installed
+            subprocess.run(["poetry", "install"], check=False)
+            return True
+        except FileNotFoundError:
+            print("Poetry not found. Falling back to direct pip installation.")
+    
+    # Create venv if it doesn't exist
+    if not os.path.exists(".venv"):
+        print("Creating virtual environment...")
+        subprocess.run([sys.executable, "-m", "venv", ".venv"], check=False)
+    
+    # Install requirements
+    pip_path = os.path.join(".venv", "Scripts", "pip.exe") if os.name == "nt" else os.path.join(".venv", "bin", "pip")
+    if os.path.exists(pip_path):
+        print("Installing requirements...")
+        subprocess.run([pip_path, "install", "flask", "pymongo", "flask-pymongo"], check=False)
+    
+    return True
+
 def start_flask_app():
     """Start the Flask application"""
     print("Starting Flask application...")
@@ -48,13 +72,27 @@ def start_flask_app():
     if "FLASK_SECRET_KEY" not in env:
         env["FLASK_SECRET_KEY"] = "dev-secret-key"
     
-    subprocess.run(["flask", "run", "--host=0.0.0.0"], env=env)
+    # Use the venv Python or try fallback approaches
+    python_path = os.path.join(".venv", "Scripts", "python.exe") if os.name == "nt" else os.path.join(".venv", "bin", "python")
+    
+    if os.path.exists(python_path):
+        subprocess.run([python_path, "-m", "flask", "run", "--host=0.0.0.0"], env=env)
+    else:
+        try:
+            subprocess.run(["flask", "run", "--host=0.0.0.0"], env=env)
+        except FileNotFoundError:
+            try:
+                subprocess.run(["python", "-m", "flask", "run", "--host=0.0.0.0"], env=env)
+            except Exception as e:
+                print(f"Failed to start Flask: {e}")
+                sys.exit(1)
 
 if __name__ == "__main__":
     if not check_mongodb():
         print("MongoDB not running locally. Attempting to start with Docker...")
         if not start_mongodb_container():
-            print("Failed to start MongoDB. Please start MongoDB manually. ")
+            print("Failed to start MongoDB. Please start MongoDB manually.")
             sys.exit(1)
     
+    setup_environment()
     start_flask_app()
