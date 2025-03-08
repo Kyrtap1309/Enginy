@@ -19,7 +19,7 @@ def start_mongodb_container():
     """Start a MongoDB container using Docker"""
     print("Starting MongoDB container...")
     result = subprocess.run(
-        ["docker", "run", "-d", "--name", "engint-mongodb", "-p", "27017:27017", "mongo:latest"],
+        ["docker", "run", "-d", "--name", "engine-mongodb", "-p", "27017:27017", "mongo:latest"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
@@ -27,7 +27,7 @@ def start_mongodb_container():
     if result.returncode != 0:
         if b"already in use" in result.stderr:
             print("MongoDB container already exists, starting it...")
-            subprocess.run(["docker", "start", "engint-mongodb"])
+            subprocess.run(["docker", "start", "engine-mongodb"])
         else:
             print(f"Error starting MongoDB container: {result.stderr.decode()}")
             return False
