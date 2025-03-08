@@ -12,12 +12,7 @@ from .forms import BasePartForm
 from .database import init_app, get_db
 from .repositories import EnginePartRepository
 from .models import EnginePart as EnginePartModel
-from .engine_config import AVAILABLE_PARTS, CLASS_MAP, EnginePartType
-
-class EnginePartType(Enum):
-    INLET = "Inlet"
-    COMPRESSOR = "Compressor"
-    COMBUSTOR = "Combustor"
+from .engine_config import AVAILABLE_PARTS, CLASS_MAP, DATA_CLASS_MAP, EnginePartType
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-key")
@@ -120,7 +115,7 @@ def create_part() -> Union[str, Response]:
                 part_dependencies[dependency_name.lower()] = dependency_obj
         
         # Create the data object for the part
-        data_class = EnginePartModel.DATA_CLASS_MAP.get(part_type.value)
+        data_class = DATA_CLASS_MAP.get(part_type.value)
         if data_class:
             data_obj = data_class(**data)
         

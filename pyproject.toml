@@ -16,6 +16,7 @@ cantera = ">=3.0.1"
 plotly = "^6.0.0"
 pymongo = "^4.11.2"
 flask-pymongo = "^3.0.1"
+tomli = "^2.2.1"
 
 
 [tool.poetry.group.dev.dependencies]

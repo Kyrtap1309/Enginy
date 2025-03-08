@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 import time
+import tomli 
 
 def check_mongodb():
     """Check if MongoDB is running using mongosh"""
@@ -36,6 +37,40 @@ def start_mongodb_container():
     time.sleep(3)
     return True
 
+def get_dependencies_from_pyproject():
+    """Extract dependencies from pyproject.toml file"""
+    if not os.path.exists("pyproject.toml"):
+        print("pyproject.toml not found, using default dependencies")
+        return ["flask", "pymongo", "flask-pymongo"]
+    
+    try:
+        with open("pyproject.toml", "rb") as f:
+            pyproject_data = tomli.load(f)
+        
+        # Extract dependencies from pyproject.toml
+        dependencies = []
+        
+        # Handle poetry dependencies
+        poetry_deps = pyproject_data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+        if poetry_deps:
+            # Filter out python dependency
+            dependencies.extend([dep for dep in poetry_deps.keys() if dep.lower() != "python"])
+        
+        # Handle project dependencies (PEP 621)
+        project_deps = pyproject_data.get("project", {}).get("dependencies", [])
+        if project_deps:
+            dependencies.extend(project_deps)
+        
+        # If no dependencies found, use defaults
+        if not dependencies:
+            print("No dependencies found in pyproject.toml, using defaults")
+            return ["flask", "pymongo", "flask-pymongo"]
+            
+        return dependencies
+    except Exception as e:
+        print(f"Error parsing pyproject.toml: {e}")
+        return ["flask", "pymongo", "flask-pymongo"]
+
 def setup_environment():
     """Setup virtual environment if needed"""
     if os.path.exists("poetry.lock"):
@@ -52,11 +87,16 @@ def setup_environment():
         print("Creating virtual environment...")
         subprocess.run([sys.executable, "-m", "venv", ".venv"], check=False)
     
-    # Install requirements
+    # Install tomli first (we need it to parse pyproject.toml)
     pip_path = os.path.join(".venv", "Scripts", "pip.exe") if os.name == "nt" else os.path.join(".venv", "bin", "pip")
     if os.path.exists(pip_path):
-        print("Installing requirements...")
-        subprocess.run([pip_path, "install", "flask", "pymongo", "flask-pymongo"], check=False)
+        print("Installing tomli for pyproject.toml parsing...")
+        subprocess.run([pip_path, "install", "tomli"], check=False)
+        
+        # Now get and install the actual dependencies
+        dependencies = get_dependencies_from_pyproject()
+        print(f"Installing dependencies: {', '.join(dependencies)}")
+        subprocess.run([pip_path, "install"] + dependencies, check=False)
     
     return True
 
@@ -82,7 +122,7 @@ def start_flask_app():
             subprocess.run(["flask", "run", "--host=0.0.0.0"], env=env)
         except FileNotFoundError:
             try:
-                subprocess.run(["python", "-m", "flask", "run", "--host=0.0.0.0"], env=env)
+                subprocess.run([python_path, "-m", "flask", "run", "--host=0.0.0.0"], env=env)
             except Exception as e:
                 print(f"Failed to start Flask: {e}")
                 sys.exit(1)
