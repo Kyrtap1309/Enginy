@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Enginy"
-version = "0.1.0"
+version = "1.0.0"
 description = "Flask-based Web Application for Jet Engine Thermodynamic Calculations"
 authors = ["Patryk Niczke <kyrtap1301@gmail.com>"]
 readme = "README.md"
