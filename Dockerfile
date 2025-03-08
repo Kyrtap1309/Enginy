@@ -1,13 +1,19 @@
 FROM python:3.9-bookworm
 
-WORKDIR /flask-app
+WORKDIR /app
 
-COPY requirements/base.txt requirements.txt
+RUN pip install poetry==1.7.1
 
-RUN pip3 install -r requirements.txt
+COPY pyproject.toml ./
 
-COPY Enginy/ .
+RUN poetry config virtualenvs.create false
 
+RUN poetry install --no-interaction --no-ansi --without dev
+
+COPY . .
+
+ENV FLASK_APP=Enginy/app.py
+ENV PYTHONPATH=/app
 ENV FLASK_SECRET_KEY="your-secret-key"
 
 CMD ["flask", "run", "--host=0.0.0.0"]

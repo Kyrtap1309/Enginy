@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: enginy-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=enginy
+    networks:
+      - enginy-network
+
+  app:
+    build: .
+    container_name: enginy-app
+    depends_on:
+      - mongodb
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=Enginy/app.py
+      - FLASK_RUN_HOST=0.0.0.0
+      - MONGO_URI=mongodb://mongodb:27017/enginy
+      - FLASK_SECRET_KEY=your-secret-key-here
+    volumes:
+      - .:/app
+    networks:
+      - enginy-network
+
+networks:
+  enginy-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:

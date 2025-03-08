@@ -11,16 +11,24 @@
 </div>
 {% endif %}
 
+{% if not config.get('MONGO_AVAILABLE', True) %}
+<div class="alert alert-warning">
+    <h4 class="alert-heading">Database Unavailable!</h4>
+    <p>MongoDB connection could not be established. The application is running in limited mode. 
+       Some features may not work properly.</p>
+</div>
+{% endif %}
+
 <h1>Existing Parts</h1>
 {% if engine_parts %}
 <ul class="list-group">
     {% for part in engine_parts %}
     <li class="list-group-item">
         <i class="fas fa-plane"></i> <strong>{{ part.name }}</strong> - {{ part.user_part_name }}
-        <form method="POST" action="{{ url_for('delete_part', part_index=loop.index0) }}" style="display: inline;">
+        <form method="POST" action="{{ url_for('delete_part', part_id=part.id) }}" style="display: inline;">
             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
         </form>
-        <a href="{{ url_for('analyze_part', part_index=loop.index0) }}" class="btn btn-info btn-sm">View Plot</a>
+        <a href="{{ url_for('analyze_part', part_id=part.id) }}" class="btn btn-info btn-sm">View Plot</a>
     </li>
     {% endfor %}
 </ul>
