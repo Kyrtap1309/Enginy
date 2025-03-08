@@ -23,6 +23,12 @@ app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-ke
 
 init_app(app)
 
+#Check MongoDB status
+mongodb_available = app.config.get("MONGO_AVAILABLE", False)
+if not mongodb_available:
+    app.logger.warning("MongoDB is not available. Application running in limited mode.")
+
+
 # List of available engine parts.
 AVAILABLE_PARTS: List[str] = [e.value for e in EnginePartType]
 
