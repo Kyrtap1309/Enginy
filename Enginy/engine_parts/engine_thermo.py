@@ -1,6 +1,6 @@
 import cantera as ct
 import numpy as np
-from . import gas_management
+from Enginy.engine_parts import gas_management
 
 def get_p_total(p_static: float, gamma: float, M: float) -> float:
     """

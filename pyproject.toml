@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Enginy"
-version = "0.1.0"
+version = "1.0.0"
 description = "Flask-based Web Application for Jet Engine Thermodynamic Calculations"
 authors = ["Patryk Niczke <kyrtap1301@gmail.com>"]
 readme = "README.md"
@@ -16,6 +16,7 @@ cantera = ">=3.0.1"
 plotly = "^6.0.0"
 pymongo = "^4.11.2"
 flask-pymongo = "^3.0.1"
+tomli = "^2.2.1"
 
 
 [tool.poetry.group.dev.dependencies]

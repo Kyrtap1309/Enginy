@@ -4,27 +4,11 @@ from bson import ObjectId
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Type, Union
 
-from .engine_parts.engine_part import EnginePart as BaseEnginePart
-from .engine_parts.inlet import Inlet, InletData
-from .engine_parts.compressor import Compressor, CompressorData
-from .engine_parts.combustor import Combustor, CombustorData
+from Enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
+from Enginy.engine_config import DATA_CLASS_MAP, CLASS_MAP, extract_part_data
 
 class EnginePart:
     """Model representing an engine part in the database"""
-    
-    # Mapping of part types to their respective data classes
-    DATA_CLASS_MAP = {
-        "Inlet": InletData,
-        "Compressor": CompressorData,
-        "Combustor": CombustorData
-    }
-    
-    # Mapping of part types to their respective classes
-    CLASS_MAP = {
-        "Inlet": Inlet,
-        "Compressor": Compressor,
-        "Combustor": Combustor
-    }
 
     @staticmethod
     def to_mongodb_format(part_dict: Dict[str, Any], user_id: Optional[str] = None) -> Dict[str, Any]:
@@ -43,14 +27,7 @@ class EnginePart:
         part_class = part_obj.__class__.__name__
         
         # Store part data based on its type
-        if hasattr(part_obj, 'inlet_data'):
-            part_data = vars(part_obj.inlet_data)
-        elif hasattr(part_obj, 'compressor_data'):
-            part_data = vars(part_obj.compressor_data)
-        elif hasattr(part_obj, 'combustor_data'):
-            part_data = vars(part_obj.combustor_data)
-        else:
-            part_data = {}
+        part_data = extract_part_data(part_obj)
         
         # Create MongoDB document
         mongo_doc = {
@@ -121,7 +98,7 @@ class EnginePart:
         part_data = part_dict.get('part_data', {})
         
         # Get the appropriate data class
-        data_class = cls.DATA_CLASS_MAP.get(part_type)
+        data_class = DATA_CLASS_MAP.get(part_type)
         if not data_class:
             return None
             
@@ -129,7 +106,7 @@ class EnginePart:
         data_instance = data_class(**part_data)
         
         # Get the part class
-        part_class = cls.CLASS_MAP.get(part_type)
+        part_class = CLASS_MAP.get(part_type)
         if not part_class:
             return None
             

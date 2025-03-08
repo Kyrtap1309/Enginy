@@ -3,10 +3,10 @@ from dataclasses import dataclass
 from typing import Union, List, Any
 from plotly import utils
 
-from . import engine_thermo
-from . import gas_management
-from .engine_part import EnginePart
-from .compressor import Compressor
+from Enginy.engine_parts import engine_thermo
+from Enginy.engine_parts import gas_management
+from Enginy.engine_parts.engine_part import EnginePart
+from Enginy.engine_parts.compressor import Compressor
 
 @dataclass
 class CombustorData:

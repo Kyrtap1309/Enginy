@@ -3,11 +3,11 @@ from typing import Union, Any, List
 from plotly import utils
 from dataclasses import dataclass
 
-from .engine_part import EnginePart
-from . import gas_management, engine_thermo
-from .inlet import Inlet
+from Enginy.engine_parts.engine_part import EnginePart
+from Enginy.engine_parts import gas_management, engine_thermo
+from Enginy.engine_parts.inlet import Inlet
 
-from ..isa import isa
+from Enginy.isa import isa
 
 @dataclass
 class CompressorData:

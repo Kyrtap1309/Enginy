@@ -7,16 +7,12 @@ from typing import Dict, List, Union, Optional
 from flask import Flask, render_template, request, redirect, url_for, jsonify, Response, flash, session
 from bson import json_util
 
-from .engine_parts.engine_part import EnginePart
-from .forms import BasePartForm
-from .database import init_app, get_db
-from .repositories import EnginePartRepository
-from .models import EnginePart as EnginePartModel
-
-class EnginePartType(Enum):
-    INLET = "Inlet"
-    COMPRESSOR = "Compressor"
-    COMBUSTOR = "Combustor"
+from Enginy.engine_parts.engine_part import EnginePart
+from Enginy.forms import BasePartForm
+from Enginy.database import init_app, get_db
+from Enginy.repositories import EnginePartRepository
+from Enginy.models import EnginePart as EnginePartModel
+from Enginy.engine_config import AVAILABLE_PARTS, CLASS_MAP, DATA_CLASS_MAP, EnginePartType
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-key")
@@ -28,21 +24,16 @@ mongodb_available = app.config.get("MONGO_AVAILABLE", False)
 if not mongodb_available:
     app.logger.warning("MongoDB is not available. Application running in limited mode.")
 
-
-# List of available engine parts.
-AVAILABLE_PARTS: List[str] = [e.value for e in EnginePartType]
-
-# Dynamically import and map engine part classes.
-ENGINE_PARTS_CLASSES: Dict[str, EnginePart] = {
-    part: getattr(importlib.import_module(f"Enginy.engine_parts.{part.lower()}"), part)
-    for part in AVAILABLE_PARTS
-}
+ENGINE_PARTS_CLASSES = CLASS_MAP
 
 # Dynamically import and map form classes.
-AVAILABLE_FORMS: Dict[str, BasePartForm] = {
-    part: getattr(importlib.import_module("Enginy.forms"), f"{part}Form")
-    for part in AVAILABLE_PARTS
-}
+AVAILABLE_FORMS: Dict[str, BasePartForm] = {}
+for part in AVAILABLE_PARTS:
+    try:
+        form_class = getattr(importlib.import_module("Enginy.forms"), f"{part}Form")
+        AVAILABLE_FORMS[part] = form_class
+    except (ImportError, AttributeError) as e:
+        app.logger.error(f"Could not import form for {part}: {e}")
 
 def get_current_user_id() -> Optional[str]:
     """Get the current user ID from session"""
@@ -124,7 +115,7 @@ def create_part() -> Union[str, Response]:
                 part_dependencies[dependency_name.lower()] = dependency_obj
         
         # Create the data object for the part
-        data_class = EnginePartModel.DATA_CLASS_MAP.get(part_type.value)
+        data_class = DATA_CLASS_MAP.get(part_type.value)
         if data_class:
             data_obj = data_class(**data)
         
