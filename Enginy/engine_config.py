@@ -1,10 +1,10 @@
 from enum import Enum
 from typing import Dict, Type
 
-from .engine_parts.engine_part import EnginePart as BaseEnginePart
-from .engine_parts.inlet import Inlet, InletData
-from .engine_parts.compressor import Compressor, CompressorData
-from .engine_parts.combustor import Combustor, CombustorData
+from Enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
+from Enginy.engine_parts.inlet import Inlet, InletData
+from Enginy.engine_parts.compressor import Compressor, CompressorData
+from Enginy.engine_parts.combustor import Combustor, CombustorData
 
 
 class EnginePartType(Enum):

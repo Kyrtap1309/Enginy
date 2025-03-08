@@ -7,12 +7,12 @@ from typing import Dict, List, Union, Optional
 from flask import Flask, render_template, request, redirect, url_for, jsonify, Response, flash, session
 from bson import json_util
 
-from .engine_parts.engine_part import EnginePart
-from .forms import BasePartForm
-from .database import init_app, get_db
-from .repositories import EnginePartRepository
-from .models import EnginePart as EnginePartModel
-from .engine_config import AVAILABLE_PARTS, CLASS_MAP, DATA_CLASS_MAP, EnginePartType
+from Enginy.engine_parts.engine_part import EnginePart
+from Enginy.forms import BasePartForm
+from Enginy.database import init_app, get_db
+from Enginy.repositories import EnginePartRepository
+from Enginy.models import EnginePart as EnginePartModel
+from Enginy.engine_config import AVAILABLE_PARTS, CLASS_MAP, DATA_CLASS_MAP, EnginePartType
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-key")

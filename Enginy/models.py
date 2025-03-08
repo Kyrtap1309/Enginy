@@ -4,8 +4,8 @@ from bson import ObjectId
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Type, Union
 
-from .engine_parts.engine_part import EnginePart as BaseEnginePart
-from .engine_config import DATA_CLASS_MAP, CLASS_MAP, extract_part_data
+from Enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
+from Enginy.engine_config import DATA_CLASS_MAP, CLASS_MAP, extract_part_data
 
 class EnginePart:
     """Model representing an engine part in the database"""

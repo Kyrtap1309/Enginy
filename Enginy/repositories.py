@@ -1,9 +1,10 @@
 from datetime import datetime
 from typing import List, Dict, Any, Optional, Tuple, Union
 from bson import ObjectId
-from .database import get_db
-from .models import EnginePart
-from .engine_parts.engine_part import EnginePart as BaseEnginePart
+
+from Enginy.database import get_db
+from Enginy.models import EnginePart
+from Enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
 
 class EnginePartRepository:
     """Repository for engine part CRUD operations"""
