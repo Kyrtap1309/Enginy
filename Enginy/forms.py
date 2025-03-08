@@ -70,7 +70,8 @@ class CompressorForm(BasePartForm):
         comp_eta: Compressor efficiency.
     """
     user_part_name = StringField('Part Name', validators=[DataRequired()])
-    inlet_part = SelectField('Select Inlet Part', coerce=int, choices=[], validate_choice=None)
+    # Change coerce to str since MongoDB uses string IDs
+    inlet_part = SelectField('Select Inlet Part', coerce=str, choices=[], validate_choice=False)
     comp_n_stages = IntegerField('Number of Stages', validators=[DataRequired(), NumberRange(1, 20)])
     compress = FloatField('Compression Ratio', validators=[DataRequired(), NumberRange(0.5, 40)])
     comp_eta = FloatField('Compressor Efficiency', validators=[DataRequired(), NumberRange(0, 1)])
@@ -98,7 +99,8 @@ class CombustorForm(BasePartForm):
         min_f: Minimum fuel percentage.
     """
     user_part_name = StringField('Part Name', validators=[DataRequired()])
-    compressor_part = SelectField('Select Compressor Part', coerce=int, validate_choice=None)
+    # Change coerce to str since MongoDB uses string IDs
+    compressor_part = SelectField('Select Compressor Part', coerce=str, validate_choice=False) 
     throttle_position = FloatField('Throttle Position', validators=[DataRequired(), NumberRange(0, 1)])
     V_nominal = FloatField('Nominal velocity in combustor(m/s)', validators=[DataRequired(), NumberRange(0, 1000)])
     Pressure_lost = FloatField('Relative pressure lost', validators=[DataRequired(), NumberRange(0, 1)])
