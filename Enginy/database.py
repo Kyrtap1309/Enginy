@@ -2,6 +2,7 @@ import os
 from pymongo import MongoClient
 from flask_pymongo import PyMongo
 
+
 MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017/enginy")
 
 mongo_client = MongoClient(MONGO_URI)

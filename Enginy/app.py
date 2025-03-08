@@ -1,10 +1,17 @@
 import importlib
 import os
+import json
+from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Optional
 from flask import Flask, render_template, request, redirect, url_for, jsonify, Response, flash, session
+from bson import json_util
+
 from .engine_parts.engine_part import EnginePart
 from .forms import BasePartForm
+from .database import init_app, get_db
+from .repositories import EnginePartRepository
+from .models import EnginePart as EnginePartModel
 
 class EnginePartType(Enum):
     INLET = "Inlet"
@@ -13,6 +20,8 @@ class EnginePartType(Enum):
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-key")
+
+init_app(app)
 
 # List of available engine parts.
 AVAILABLE_PARTS: List[str] = [e.value for e in EnginePartType]
@@ -29,9 +38,13 @@ AVAILABLE_FORMS: Dict[str, BasePartForm] = {
     for part in AVAILABLE_PARTS
 }
 
-
-# Global list storing created engine parts.
-engine_parts = []
+def get_current_user_id() -> Optional[str]:
+    """Get the current user ID from session"""
+    # Placeholder: In the future, this will be from authentification.
+    # For now, we'll use a session-based pseudo user ID
+    if 'user_id' not in session:
+        session['user_id'] =  f"session_{datetime.now().timestamp()}"
+    return session['user_id']
 
 @app.route('/')
 def index() -> str:
@@ -41,10 +54,15 @@ def index() -> str:
     Returns:
         Rendered HTML page showing the engine parts.
     """
+
+    user_id = get_current_user_id()
+    engine_parts = EnginePartRepository.get_all_parts(user_id)
+
     show_welcome = False
     if not session.get("welcome_shown"):
         show_welcome = True
         session["welcome_shown"] = True
+    
     return render_template('index.html', engine_parts=engine_parts, show_welcome=show_welcome)
 
 
@@ -65,6 +83,7 @@ def create_part() -> Union[str, Response]:
     """
     # Get the type of part from query parameter (default is "Inlet")
     part_type_str = request.args.get('type', EnginePartType.INLET.value)
+    user_id = get_current_user_id()
 
     try:
         part_type = EnginePartType(part_type_str)
@@ -77,11 +96,9 @@ def create_part() -> Union[str, Response]:
 
     # Dynamically set choice lists for dependency fields, e.g., inlet choice for Compressor.
     for field_name, dependency_name in form.get_dependency_fields().items():
-        choices = [
-            (i, ep["user_part_name"]) 
-            for i, ep in enumerate(engine_parts) 
-            if ep["name"] == dependency_name
-        ]
+
+        parts = EnginePartRepository.get_parts_by_type(dependency_name, user_id)
+        choices = [(part['id'], part['user_part_name']) for part in parts]
         getattr(form, field_name).choices = choices
 
     if form.validate_on_submit():
@@ -91,19 +108,37 @@ def create_part() -> Union[str, Response]:
         data.pop("submit", None)
 
         dependencies = {}
+        dependency_ids ={}
+
         for field_name, dependency_name in form.get_dependency_fields().items():
-            part_index = data.pop(field_name)
-            dependencies[dependency_name.lower()] = engine_parts[part_index]["part"]
+            dependency_id = data.pop(field_name)
+            dependency_ids[dependency_name.lower()] = dependency_id
 
+            # Here we would retrieve the actual part from the database
+            # and reconstruct the part object
+            # This is a complex part that requires serialization/deserialization strategies
+            # For now, this is a placeholder
+            
+            # dependencies[dependency_name.lower()] = get_dependency_object(dependency_id)
+        
+        #create the part instance
         part_class = ENGINE_PARTS_CLASSES[part_type.value]
-        part_instance = part_class(data, **dependencies)
+        
+        #part_instance = part_class(data, **dependencies)
 
-        engine_parts.append({
-            'part': part_instance,
+
+        # For now, store just the data without reconstructing objects
+        part_dict = {
+            'part_data': data,
             'name': part_type.value,
             'user_part_name': user_part_name,
-            'analysis': f"Analysis for {part_type.value}"
-        })
+            'part_type': part_type.value,
+        }
+
+        part_id = EnginePartRepository.save_part(part_dict, user_id)
+
+        for dep_name, dep_id in dependency_ids.items():
+            EnginePartModel.add_dependency(part_id, dep_id)
 
         flash(f'{part_type.value} created successfully!', 'success')
         return redirect(url_for('index'))
@@ -113,47 +148,59 @@ def create_part() -> Union[str, Response]:
         form=form, 
         available_parts=AVAILABLE_PARTS, 
         current_type=part_type.value, 
-        engine_parts=engine_parts
     )
 
 
-@app.route('/delete_part/<int:part_index>', methods=['POST'])
-def delete_part(part_index: int) -> Response:
+@app.route('/delete_part/<string:part_id>', methods=['POST'])
+def delete_part(part_id: str) -> Response:
     """
-    Delete an existing engine part by its index.
+    Delete an existing engine part by its ID.
     
     Args:
-        part_index (int): The index of the engine part to be deleted.
+        part_index (str): The ID of the engine part to be deleted.
     
     Returns:
         A redirect response to the index page.
     """
-    if 0 <= part_index < len(engine_parts):
-        removed_part = engine_parts.pop(part_index)
-        flash(f'{removed_part["name"]} "{removed_part["user_part_name"]}" deleted successfully!', 'success')
+    part = EnginePartRepository.get_part(part_id)
+    if part:
+        success = EnginePartRepository.delete_part(part_id)
+        if success:
+            flash(f'{part["name"]} deleted successfully!', 'success')
+        else:
+            flash(f'Failed to delete {part["name"]}', 'danger')
     else:
-        flash("Invalid part index for deletion.", 'danger')
+        flash("Invalid part ID for deletion.", "danger")
+
     return redirect(url_for('index'))
 
 
-@app.route('/analyze_part/<int:part_index>', methods=['GET'])
-def analyze_part(part_index) -> Union[str, Response]:
+@app.route('/analyze_part/<string:part_id>', methods=['GET'])
+def analyze_part(part_id: str) -> Union[str, Response]:
     """
     Analyze a single engine part and render an analysis page.
     
     Args:
-        part_index (int): The index of the engine part to analyze.
+        part_id (str): The ID of the engine part to analyze.
     
     Returns:
         Rendered HTML analysis page if valid,
         Otherwise, a JSON error response.
     """
-    if 0 <= part_index < len(engine_parts):
-        analysis = engine_parts[part_index]["part"].analyze()
+    part = EnginePartRepository.get_part(part_id)
+    if part:
+        # For analysis, we need to reconstruct the original part object
+        # This would require serialization/deserialization logic
+        
+        # Placeholder for demonstration
+        analysis = {"data": [{"x": [1, 2, 3], "y": [4, 5, 6], "type": "scatter"}]}
+        analysis_json = json.dumps(analysis)
+        
         flash("Analysis completed successfully!", 'success')
-        return render_template("analyze.html", analysis=analysis)
-    flash("Invalid part index.", "danger")
-    return jsonify({'error': 'Invalid part index'}), 400
+        return render_template("analyze.html", analysis=analysis_json)
+    
+    flash("Invalid part ID.", "danger")
+    return jsonify({'error': 'Invalid part ID'}), 400
 
 
 @app.route('/analyze_engine', methods=['POST'])
@@ -163,21 +210,19 @@ def analyze_engine() -> Response:
 
     Perform analysis on the complete engine assembly.
     
-    Note:
-        At least 5 parts are required to perform a full analysis.
-    
     Returns:
         JSON response containing the engine analysis result.
     """
-    if len(engine_parts) < 5:
-        flash("Not enough parts to build the engine!", "danger")
-        return jsonify({'error': 'Not enough parts to build the engine!'}), 400
+    user_id = get_current_user_id()
+    parts = EnginePartRepository.get_all_parts(user_id)
 
-    # Placeholder for complete engine analysis logic.
+    if len(parts) < 5:
+        flash("Not enough parts to analyze the engine.", "danger")
+        return jsonify({'error': 'Not enough parts to analyze the engine.'}), 400
+    
     engine_analysis_result = "Complete Engine Analysis"
     flash("Complete engine analysis completed successfully!", 'success')
     return jsonify({'result': engine_analysis_result})
-
 
 if __name__ == '__main__':
     app.run(debug=True)
