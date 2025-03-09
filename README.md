@@ -50,6 +50,12 @@ Now you can continue with running the **Enginy** app:
 
 The quickest way to set up and run Enginy is using the provided startup script:
 
+Install **tomli** package with **pip**:
+```bash
+python -m pip install tomli
+```
+And run startup script:
+
 ```bash
 python start_dev.py
 ```
