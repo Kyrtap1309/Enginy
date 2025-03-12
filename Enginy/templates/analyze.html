@@ -1,32 +1,143 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>T-s Diagram</title>
-    <link rel="stylesheet" href="../static/css/styles.css">
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-</head>
-<body>
-    <div class="navbar">
-        <div class="container">
-            <span class="navbar-brand">T-s Diagram</span>
-            <a href="{{ url_for('index') }}" class="nav-link">Main Page</a>
+{% extends "base.html" %}
+
+{% block page_header %}
+<div class="d-flex justify-content-between align-items-center">
+    <h1><i class="fas fa-chart-line me-2"></i>Jet Engine Analysis</h1>
+    <div class="actions">
+        <button class="btn btn-outline-primary" onclick="downloadAnalysisData()">
+            <i class="fas fa-download me-1"></i> Export Data
+        </button>
+        <a href="{{ url_for('index') }}" class="btn btn-secondary ms-2">
+            <i class="fas fa-arrow-left me-1"></i> Back
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-chart-area me-2"></i> T-s Diagram (Temperature-Entropy)</span>
+                <div class="card-actions">
+                    <button class="btn btn-sm btn-outline-primary" onclick="toggleFullscreen()">
+                        <i class="fas fa-expand-arrows-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="graph-container" id="graph"></div>
+            </div>
         </div>
     </div>
+</div>
 
-    <div class="container">
-        <h1>T-s Diagram</h1>
-        <div id="graph"></div>
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i> Analysis Information
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Analysis Type:</span>
+                        <span class="text-primary">Thermodynamic</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Analysis Date:</span>
+                        <span class="text-primary">{{ now }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Calculation Status:</span>
+                        <span class="badge bg-success">Completed</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
-
-    <div class="footer">
-        &copy; 2024 Enginy
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-lightbulb me-2"></i> Diagram Interpretation
+            </div>
+            <div class="card-body">
+                <p>The T-s diagram represents the relationship between temperature and entropy for the analyzed jet engine component. 
+                   This is a key tool for thermodynamic analysis of the engine cycle.</p>
+                <p>The curves on the graph show:</p>
+                <ul>
+                    <li>Isobars - lines of constant pressure</li>
+                    <li>Thermodynamic processes between working points</li>
+                    <li>Process line - showing gas parameter changes at different stations</li>
+                </ul>
+            </div>
+        </div>
     </div>
+</div>
+{% endblock %}
 
-    <script>
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
         var analysis = {{ analysis|safe }};
+        
+        const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+        if (analysis.layout) {
+            analysis.layout.template = currentTheme === 'dark' ? 'plotly_dark' : 'plotly';
+            analysis.layout.paper_bgcolor = currentTheme === 'dark' ? '#1e1e1e' : '#ffffff';
+            analysis.layout.plot_bgcolor = currentTheme === 'dark' ? '#1e1e1e' : '#ffffff';
+            analysis.layout.font = {
+                color: currentTheme === 'dark' ? '#e0e0e0' : '#2c3e50'
+            };
+            
+            // Add responsiveness
+            analysis.layout.autosize = true;
+            analysis.layout.margin = { l: 50, r: 20, b: 50, t: 50, pad: 4 };
+        }
+        
+        // Create the plot
         Plotly.newPlot('graph', analysis);
-    </script>
-</body>
-</html>
+        
+        adjustGraphHeight();
+    });
+    
+    // Function to adjust graph height
+    function adjustGraphHeight() {
+        const graphContainer = document.getElementById('graph');
+        if (graphContainer) {
+            graphContainer.style.height = '550px';
+        }
+    }
+    
+    // Handle window resize
+    window.addEventListener('resize', adjustGraphHeight);
+    
+    function toggleFullscreen() {
+        const graphContainer = document.getElementById('graph');
+        if (graphContainer) {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else {
+                graphContainer.requestFullscreen();
+            }
+        }
+    }
+    
+    // Data export function
+    function downloadAnalysisData() {
+        const graphDiv = document.getElementById('graph');
+        if (graphDiv && window.Plotly) {
+            Plotly.downloadImage(graphDiv, {
+                format: 'png',
+                width: 1200,
+                height: 800,
+                filename: 'enginy-analysis-' + new Date().toISOString().split('T')[0]
+            });
+        } else {
+            alert('Export function requires the Plotly library to be loaded.');
+        }
+    }
+</script>
+{% endblock %}
