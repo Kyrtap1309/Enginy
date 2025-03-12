@@ -3,57 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jet Engine Analysis</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Enginy - Advanced Jet Engine Analysis</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    {% block extra_css %}{% endblock %}
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light">
-        <a class="navbar-brand" href="{{ url_for('index') }}">Jet Engine</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('index') }}">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('create_part') }}">Create Part</a>
-                </li>
-            </ul>
+<body class="d-flex flex-column min-vh-100">
+    <!-- Top navigation bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <i class="fas fa-jet-fighter-up me-2"></i>
+                <span class="brand-text">ENGINY</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarMain">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="partsDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cogs"></i> Engine Parts
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-dark">
+                            <li><a class="dropdown-item" href="{{ url_for('create_part') }}"><i class="fas fa-plus"></i> Create New Part</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('index') }}"><i class="fas fa-list"></i> View All Parts</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('create_part', type='Inlet') }}">Inlet</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('create_part', type='Compressor') }}">Compressor</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('create_part', type='Combustor') }}">Combustor</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-line"></i> Analysis
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="status-indicator">
+                        <span class="status-dot {% if config.get('MONGO_AVAILABLE', True) %}online{% else %}offline{% endif %}"></span>
+                        <span class="status-text">Database: {% if config.get('MONGO_AVAILABLE', True) %}Online{% else %}Offline{% endif %}</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <div class="container mt-4 flex-container">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                 <div class = "alert alert-{{ category}} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                 </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+    <!-- Main content wrapper -->
+    <div class="content-wrapper">
+        <!-- Sidebar (hidden on small screens) -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-jet-fighter-up"></i>
+                <span>Navigation</span>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Dashboard</a></li>
+                <li class="sidebar-dropdown">
+                    <a href="#"><i class="fas fa-cogs"></i> Engine Parts</a>
+                    <ul class="sidebar-submenu">
+                        <li><a href="{{ url_for('create_part') }}"><i class="fas fa-plus"></i> Create Part</a></li>
+                        <li><a href="{{ url_for('index') }}"><i class="fas fa-list"></i> View All</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main content area -->
+        <div class="main-content">
+            <!-- Flash messages -->
+            <div class="flash-messages">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'info' %}info-circle{% else %}bell{% endif %} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <!-- Page header -->
+            <div class="page-header">
+                {% block page_header %}{% endblock %}
+            </div>
+
+            <!-- Main content container -->
+            <div class="container-fluid mt-4">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
     </div>
-    
-    <footer class="footer">
-        <p>&copy; 2024 Jet Engine Analysis App. All rights reserved.</p>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2024-2025 Enginy - Advanced Jet Engine Analysis</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <ul class="footer-links">
+                        <li><a href="https://github.com/Kyrtap1309/Enginy">GitHub</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </footer>
     
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
     <script>
-         $(document).ready(function(){
-        window.setTimeout(function(){
-            $(".alert").fadeTo(2000, 0).slideUp(1000, function(){
-                $(this).remove();
+        // Handle sidebar toggle on mobile
+        $(document).ready(function() {
+            // Flash message auto-dismiss
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 4000);
+            
+            // Toggle sidebar dropdown menus
+            $('.sidebar-dropdown > a').click(function() {
+                $(this).next('.sidebar-submenu').slideToggle(200);
+                $(this).parent().toggleClass('active');
+                return false;
             });
-        }, 4000);
+            
+            // Toggle sidebar on mobile
+            $('.navbar-toggler').click(function() {
+                $('body').toggleClass('sidebar-mobile-open');
+            });
         });
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>
