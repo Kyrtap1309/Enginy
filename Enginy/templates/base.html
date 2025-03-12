@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -52,6 +52,14 @@
                     </li>
                 </ul>
                 <div class="d-flex align-items-center">
+                    <!-- Theme switcher -->
+                    <div class="theme-switch-wrapper me-3">
+                        <button id="theme-switch" class="btn btn-sm btn-outline-light" title="Przełącz motyw">
+                            <i class="fas fa-sun theme-icon-light"></i>
+                            <i class="fas fa-moon theme-icon-dark d-none"></i>
+                        </button>
+                    </div>
+                    <!-- Database status indicator -->
                     <div class="status-indicator">
                         <span class="status-dot {% if config.get('MONGO_AVAILABLE', True) %}online{% else %}offline{% endif %}"></span>
                         <span class="status-text">Database: {% if config.get('MONGO_AVAILABLE', True) %}Online{% else %}Offline{% endif %}</span>
@@ -78,6 +86,8 @@
                         <li><a href="{{ url_for('index') }}"><i class="fas fa-list"></i> View All</a></li>
                     </ul>
                 </li>
+                <li><a href="#"><i class="fas fa-chart-line"></i> Analysis</a></li>
+                <li><a href="#"><i class="fas fa-book"></i> Documentation</a></li>
             </ul>
         </div>
 
@@ -119,6 +129,8 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <ul class="footer-links">
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Documentation</a></li>
                         <li><a href="https://github.com/Kyrtap1309/Enginy">GitHub</a></li>
                     </ul>
                 </div>
@@ -130,28 +142,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-    
-    <script>
-        // Handle sidebar toggle on mobile
-        $(document).ready(function() {
-            // Flash message auto-dismiss
-            setTimeout(function() {
-                $('.alert').fadeOut('slow');
-            }, 4000);
-            
-            // Toggle sidebar dropdown menus
-            $('.sidebar-dropdown > a').click(function() {
-                $(this).next('.sidebar-submenu').slideToggle(200);
-                $(this).parent().toggleClass('active');
-                return false;
-            });
-            
-            // Toggle sidebar on mobile
-            $('.navbar-toggler').click(function() {
-                $('body').toggleClass('sidebar-mobile-open');
-            });
-        });
-    </script>
     
     {% block extra_js %}{% endblock %}
 </body>
