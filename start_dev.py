@@ -2,7 +2,14 @@ import os
 import subprocess
 import sys
 import time
-import tomli 
+import tomllib 
+
+def check_python_version():
+    if sys.version_info < (3, 11):
+        print("Error: This project requires Python 3.11 or newer.")
+        print(f"Current Python version: {sys.version}")
+        sys.exit(1)
+    print(f"Using Python {sys.version}")
 
 def check_mongodb():
     """Check if MongoDB is running using mongosh"""
@@ -45,7 +52,7 @@ def get_dependencies_from_pyproject():
     
     try:
         with open("pyproject.toml", "rb") as f:
-            pyproject_data = tomli.load(f)
+            pyproject_data = tomllib.load(f)
         
         # Extract dependencies from pyproject.toml
         dependencies = []
@@ -87,13 +94,10 @@ def setup_environment():
         print("Creating virtual environment...")
         subprocess.run([sys.executable, "-m", "venv", ".venv"], check=False)
     
-    # Install tomli first (we need it to parse pyproject.toml)
+    # Install dependencies directly - no need for tomli installation
     pip_path = os.path.join(".venv", "Scripts", "pip.exe") if os.name == "nt" else os.path.join(".venv", "bin", "pip")
-    if os.path.exists(pip_path):
-        print("Installing tomli for pyproject.toml parsing...")
-        subprocess.run([pip_path, "install", "tomli"], check=False)
-        
-        # Now get and install the actual dependencies
+    if os.path.exists(pip_path):        
+        # Get and install the dependencies
         dependencies = get_dependencies_from_pyproject()
         print(f"Installing dependencies: {', '.join(dependencies)}")
         subprocess.run([pip_path, "install"] + dependencies, check=False)
@@ -128,6 +132,8 @@ def start_flask_app():
                 sys.exit(1)
 
 if __name__ == "__main__":
+    check_python_version() 
+    
     if not check_mongodb():
         print("MongoDB not running locally. Attempting to start with Docker...")
         if not start_mongodb_container():

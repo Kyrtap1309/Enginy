@@ -31,7 +31,7 @@ This tool can be a valuable resource for engineers, researchers, and students wo
 
 Before you begin, ensure you have the following installed on your machine:
 
-- Python 3.9 or later
+- Python 3.11 or later (required for built-in tomllib)
 - Poetry (for dependency management)
 - Docker (optional, for containerized deployment)
 - MongoDB (optional, automated setup available)
