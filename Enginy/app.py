@@ -209,7 +209,8 @@ def analyze_part(part_id: str) -> Union[str, Response]:
             EnginePartRepository.save_analysis_result(part_id, analysis_json)
             
             flash("Analysis completed successfully!", 'success')
-            return render_template("analyze.html", analysis=analysis_json)
+            now = datetime.now().strftime('%Y-%m-%d %H:%M')
+            return render_template("analyze.html", analysis=analysis_json, now=now)
         except Exception as e:
             flash(f"Error during analysis: {str(e)}", 'danger')
             return jsonify({'error': f'Analysis error: {str(e)}'}), 500
