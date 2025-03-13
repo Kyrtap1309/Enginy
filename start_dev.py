@@ -116,20 +116,33 @@ def start_flask_app():
     if "FLASK_SECRET_KEY" not in env:
         env["FLASK_SECRET_KEY"] = "dev-secret-key"
     
-    # Use the venv Python or try fallback approaches
+    # Check if we're using Poetry
+    if os.path.exists("poetry.lock"):
+        try:
+            # Use Poetry to run the Flask app
+            print("Using Poetry to run Flask...")
+            subprocess.run(["poetry", "run", "flask", "run", "--host=127.0.0.1"], env=env)
+            return
+        except FileNotFoundError:
+            print("Poetry command not found, trying alternative methods...")
+    
+    # Try to find Python in the virtual environment
     python_path = os.path.join(".venv", "Scripts", "python.exe") if os.name == "nt" else os.path.join(".venv", "bin", "python")
     
     if os.path.exists(python_path):
-        subprocess.run([python_path, "-m", "flask", "run", "--host=0.0.0.0"], env=env)
+        subprocess.run([python_path, "-m", "flask", "run", "--host=127.0.0.1"], env=env)
     else:
+        # If venv python not found, try the system Python
         try:
-            subprocess.run(["flask", "run", "--host=0.0.0.0"], env=env)
-        except FileNotFoundError:
+            print("Virtual environment Python not found, using system Python...")
+            subprocess.run([sys.executable, "-m", "flask", "run", "--host=127.0.0.1"], env=env)
+        except Exception as e:
+            print(f"Failed to start Flask: {str(e)}")
+            # Last resort - try the flask command directly
             try:
-                subprocess.run([python_path, "-m", "flask", "run", "--host=0.0.0.0"], env=env)
-            except Exception as e:
-                print(f"Failed to start Flask: {e}")
-                sys.exit(1)
+                subprocess.run(["flask", "run", "--host=127.0.0.1"], env=env)
+            except FileNotFoundError:
+                print("Error: Could not find a way to run Flask. Please make sure Flask is installed.")
 
 if __name__ == "__main__":
     check_python_version() 
