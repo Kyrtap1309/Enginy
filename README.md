@@ -112,6 +112,16 @@ To run both the application and MongoDB in containers:
     flask run --host=0.0.0.0
     ```
 
+## Using Enginy Application
+After the setup process, you can start using the Enginy app by typing:
+```bash 
+localhost:5000 
+``` 
+into your browser, or: 
+```bash
+http://127.0.0.1:5000
+```
+
 ## Contributing
 Feel free to fork the repository and submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
 
