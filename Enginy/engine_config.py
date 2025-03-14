@@ -5,12 +5,14 @@ from Enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
 from Enginy.engine_parts.inlet import Inlet, InletData
 from Enginy.engine_parts.compressor import Compressor, CompressorData
 from Enginy.engine_parts.combustor import Combustor, CombustorData
+from Enginy.engine_parts.turbine import Turbine, TurbineData
 
 
 class EnginePartType(Enum):
     INLET = "Inlet"
     COMPRESSOR = "Compressor"
     COMBUSTOR = "Combustor"
+    TURBINE = "Turbine"
 
 
 AVAILABLE_PARTS = [e.value for e in EnginePartType]
@@ -18,13 +20,15 @@ AVAILABLE_PARTS = [e.value for e in EnginePartType]
 CLASS_MAP: Dict[str, Type[BaseEnginePart]] = {
     "Inlet": Inlet,
     "Compressor": Compressor,  
-    "Combustor": Combustor
+    "Combustor": Combustor,
+    "Turbine": Turbine
 }
 
 DATA_CLASS_MAP: Dict[str, Type] = {
     "Inlet": InletData,
     "Compressor": CompressorData,
-    "Combustor": CombustorData
+    "Combustor": CombustorData,
+    "Turbine": TurbineData
 }
 
 def extract_part_data(part_obj: BaseEnginePart) -> dict:

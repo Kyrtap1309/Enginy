@@ -115,3 +115,9 @@ class CombustorForm(BasePartForm):
             A dictionary indicating that the field 'compressor_part' depends on a 'Compressor' part.
         """
         return {"compressor_part": "Compressor"}
+    
+
+class TurbineForm(BasePartForm):
+    """
+    Form for creating a Turbine engine part.
+    """
