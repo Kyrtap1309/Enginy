@@ -2,7 +2,40 @@ import os
 import subprocess
 import sys
 import time
-import tomllib 
+import tomllib
+import signal
+import atexit
+
+# Global variables to track the processes
+flask_process = None
+mongodb_container_name = "engine-mongodb"
+
+def signal_handler(sig, frame):
+    """Handle SIGINT (Ctrl+C) and other termination signals"""
+    print("\nShutting down gracefully. Please wait...")
+    cleanup_resources()
+    sys.exit(0)
+
+def cleanup_resources():
+    """Clean up resources before exiting"""
+    # Stop Flask process if running
+    if flask_process and flask_process.poll() is None:
+        print("Stopping Flask application...")
+        flask_process.terminate()
+        try:
+            flask_process.wait(timeout=5)  # Wait up to 5 seconds for process to terminate
+        except subprocess.TimeoutExpired:
+            flask_process.kill()  # Force kill if it doesn't terminate
+
+    # Stop MongoDB container if it was started by us
+    if os.environ.get("MONGODB_STARTED_BY_SCRIPT") == "true":
+        print("Stopping MongoDB container...")
+        try:
+            subprocess.run(["docker", "stop", mongodb_container_name], 
+                          stdout=subprocess.DEVNULL, 
+                          stderr=subprocess.DEVNULL)
+        except Exception as e:
+            print(f"Error stopping MongoDB container: {e}")
 
 def check_python_version():
     if sys.version_info < (3, 11):
@@ -27,7 +60,7 @@ def start_mongodb_container():
     """Start a MongoDB container using Docker"""
     print("Starting MongoDB container...")
     result = subprocess.run(
-        ["docker", "run", "-d", "--name", "engine-mongodb", "-p", "27017:27017", "mongo:latest"],
+        ["docker", "run", "-d", "--name", mongodb_container_name, "-p", "27017:27017", "mongo:latest"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
     )
@@ -35,12 +68,15 @@ def start_mongodb_container():
     if result.returncode != 0:
         if b"already in use" in result.stderr:
             print("MongoDB container already exists, starting it...")
-            subprocess.run(["docker", "start", "engine-mongodb"])
+            subprocess.run(["docker", "start", mongodb_container_name])
         else:
             print(f"Error starting MongoDB container: {result.stderr.decode()}")
             return False
     
-    #Give MongoDB time to start
+    # Mark that we started MongoDB
+    os.environ["MONGODB_STARTED_BY_SCRIPT"] = "true"
+    
+    # Give MongoDB time to start
     time.sleep(3)
     return True
 
@@ -106,32 +142,74 @@ def setup_environment():
 
 def start_flask_app():
     """Start the Flask application"""
+    global flask_process
     print("Starting Flask application...")
     env = os.environ.copy()
     env["FLASK_APP"] = "Enginy/app.py"
     env["FLASK_ENV"] = "development"
     env["FLASK_DEBUG"] = "1"
-    env["MONGO_URI"] = "mongodb://localhost:27017/enginy"
+    env["MONGO_URI"] = f"mongodb://localhost:27017/enginy"
 
     if "FLASK_SECRET_KEY" not in env:
         env["FLASK_SECRET_KEY"] = "dev-secret-key"
     
-    # Use the venv Python or try fallback approaches
+    # Check if we're using Poetry
+    if os.path.exists("poetry.lock"):
+        try:
+            # Use Poetry to run the Flask app
+            print("Using Poetry to run Flask...")
+            print("\nFlask server is running. Press Ctrl+C to stop.")
+            flask_process = subprocess.Popen(
+                ["poetry", "run", "flask", "run", "--host=127.0.0.1"], 
+                env=env
+            )
+            # Keep the script running until the Flask process exits or is killed
+            flask_process.wait()
+            return
+        except FileNotFoundError:
+            print("Poetry command not found, trying alternative methods...")
+    
+    # Try to find Python in the virtual environment
     python_path = os.path.join(".venv", "Scripts", "python.exe") if os.name == "nt" else os.path.join(".venv", "bin", "python")
     
     if os.path.exists(python_path):
-        subprocess.run([python_path, "-m", "flask", "run", "--host=0.0.0.0"], env=env)
+        print("\nFlask server is running. Press Ctrl+C to stop.")
+        flask_process = subprocess.Popen(
+            [python_path, "-m", "flask", "run", "--host=127.0.0.1"], 
+            env=env
+        )
+        flask_process.wait()
     else:
+        # If venv python not found, try the system Python
         try:
-            subprocess.run(["flask", "run", "--host=0.0.0.0"], env=env)
-        except FileNotFoundError:
+            print("Virtual environment Python not found, using system Python...")
+            print("\nFlask server is running. Press Ctrl+C to stop.")
+            flask_process = subprocess.Popen(
+                [sys.executable, "-m", "flask", "run", "--host=127.0.0.1"], 
+                env=env
+            )
+            flask_process.wait()
+        except Exception as e:
+            print(f"Failed to start Flask: {str(e)}")
+            # Last resort - try the flask command directly
             try:
-                subprocess.run([python_path, "-m", "flask", "run", "--host=0.0.0.0"], env=env)
-            except Exception as e:
-                print(f"Failed to start Flask: {e}")
-                sys.exit(1)
+                print("\nFlask server is running. Press Ctrl+C to stop.")
+                flask_process = subprocess.Popen(
+                    ["flask", "run", "--host=127.0.0.1"], 
+                    env=env
+                )
+                flask_process.wait()
+            except FileNotFoundError:
+                print("Error: Could not find a way to run Flask. Please make sure Flask is installed.")
 
 if __name__ == "__main__":
+    # Register the signal handler for graceful termination
+    signal.signal(signal.SIGINT, signal_handler)  # Handle Ctrl+C
+    signal.signal(signal.SIGTERM, signal_handler)  # Handle termination signal
+    
+    # Register cleanup function to run at exit
+    atexit.register(cleanup_resources)
+    
     check_python_version() 
     
     if not check_mongodb():
