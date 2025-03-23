@@ -60,7 +60,7 @@ To run both the application and MongoDB in containers:
 
 1. **Start the environment**:
     ```bash
-    docker-compose up
+    docker compose up -d
     ```
     This will build and start both the MongoDB contaner and the Enginy application container.
 
