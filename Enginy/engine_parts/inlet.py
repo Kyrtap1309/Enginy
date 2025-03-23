@@ -1,12 +1,12 @@
 import json
-from typing import Union, Any, List
 from dataclasses import dataclass
+from typing import Any
+
 from plotly import utils
 
-from Enginy.isa import isa
-from Enginy.engine_parts import engine_thermo
-from Enginy.engine_parts import gas_management
-from Enginy.engine_parts.engine_part import EnginePart
+from enginy.engine_parts import engine_thermo, gas_management
+from enginy.engine_parts.engine_part import EnginePart
+from enginy.isa import isa
 
 
 @dataclass
@@ -24,7 +24,7 @@ class Inlet(EnginePart):
     Represents an inlet component of an aircraft jet engine.
     """
 
-    def __init__(self, inlet_data: Union[dict, InletData], **kwargs) -> None:
+    def __init__(self, inlet_data: dict | InletData, **kwargs) -> None:
         """
         Initialize the Inlet object with provided inlet data.
 
@@ -44,15 +44,15 @@ class Inlet(EnginePart):
         else:
             self.inlet_data = inlet_data
 
-        self.T_ambient: float = isa.ISA_T(self.inlet_data.altitude)
-        self.p_ambient: float = isa.ISA_p(self.inlet_data.altitude)
+        self.temperature_ambient: float = isa.isa_temperature(self.inlet_data.altitude)
+        self.p_ambient: float = isa.isa_p(self.inlet_data.altitude)
         self.M_ambient: float = self.inlet_data.M_ambient_input
         self.mass_flow: float = self.inlet_data.mass_flow
         self.A_1: float = self.inlet_data.A1
         self.A_2: float = self.inlet_data.A2
         self.inlet_eta: float = self.inlet_data.eta
         self.gas: dict[Any, Any] = gas_management.initialize_gas(
-            self.T_ambient, self.p_ambient
+            self.temperature_ambient, self.p_ambient
         )
 
         _ambient_stage_index: str = gas_management.st[0]
@@ -62,7 +62,7 @@ class Inlet(EnginePart):
             self.ambient_stage_gas
         )
         self.gamma: float = engine_thermo.get_gamma(self.ambient_stage_gas)
-        self.T_total_inlet_in: float = engine_thermo.get_T_total(
+        self.T_total_inlet_in: float = engine_thermo.get_temperature_total(
             self.ambient_stage_gas.T, self.gamma, self.M_ambient
         )
         self.p_total_inlet_in = engine_thermo.get_p_total(
@@ -84,7 +84,7 @@ class Inlet(EnginePart):
 
         Uses the mach solver to compute the Mach number and assigns it to M_inlet_in if convergence is achieved.
         """
-        M_calc, convergence = engine_thermo.mach_solver(
+        mach_calc, convergence = engine_thermo.mach_solver(
             self.mass_flow,
             self.A_1,
             self.ambient_stage_gas,
@@ -94,7 +94,7 @@ class Inlet(EnginePart):
         )
 
         if convergence:
-            self.M_inlet_in = M_calc
+            self.M_inlet_in = mach_calc
 
     def mach_inlet_from_entrance_to_output(self) -> None:
         """
@@ -102,7 +102,7 @@ class Inlet(EnginePart):
 
         Uses the mach solver to compute the Mach number and assigns it to M_inlet_out if convergence is achieved.
         """
-        M_calc, convergence = engine_thermo.mach_solver(
+        mach_calc, convergence = engine_thermo.mach_solver(
             self.mass_flow,
             self.A_2,
             self.inlet_in_stage_gas,
@@ -112,7 +112,7 @@ class Inlet(EnginePart):
         )
 
         if convergence:
-            self.M_inlet_out = M_calc
+            self.M_inlet_out = mach_calc
 
     def analyze(self) -> str:
         """
@@ -124,22 +124,22 @@ class Inlet(EnginePart):
         Returns:
             str: JSON-encoded plot of the inlet analysis.
         """
-        inlet_T = []
+        inlet_t = []
         inlet_p = []
-        inlet_X = []
+        inlet_x = []
 
         for x in range(0, 3):
-            inlet_T.append(self.gas[gas_management.st[x]].T)
+            inlet_t.append(self.gas[gas_management.st[x]].T)
             inlet_p.append(self.gas[gas_management.st[x]].P)
-            inlet_X.append(self.gas[gas_management.st[x]].X)
+            inlet_x.append(self.gas[gas_management.st[x]].X)
 
-        plot = gas_management.plot_T_s(
-            inlet_T,
+        plot = gas_management.plot_temperature_enthropy(
+            inlet_t,
             inlet_p,
-            inlet_X,
+            inlet_x,
             gas_management.reaction_mechanism,
             gas_management.phase_name,
         )
 
-        graphJSON = json.dumps(plot, cls=utils.PlotlyJSONEncoder)
-        return graphJSON
+        graphjson = json.dumps(plot, cls=utils.PlotlyJSONEncoder)
+        return graphjson

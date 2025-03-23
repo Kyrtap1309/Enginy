@@ -1,17 +1,18 @@
 from datetime import datetime
-from typing import List, Dict, Any, Optional, Tuple, Union
+from typing import Any
+
 from bson import ObjectId
 
-from Enginy.database import get_db
-from Enginy.models import EnginePart
-from Enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
+from enginy.database import get_db
+from enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
+from enginy.models import EnginePart
 
 
 class EnginePartRepository:
     """Repository for engine part CRUD operations"""
 
     @staticmethod
-    def save_part(part_dict: Dict[str, Any], user_id: Optional[str] = None) -> str:
+    def save_part(part_dict: dict[str, Any], user_id: str | None = None) -> str:
         """
         Save an engine part to the database
 
@@ -28,7 +29,7 @@ class EnginePartRepository:
         return str(result.inserted_id)
 
     @staticmethod
-    def get_part(part_id: str) -> Dict[str, Any]:
+    def get_part(part_id: str) -> dict[str, Any]:
         """
         Get an engine part by ID
 
@@ -47,7 +48,7 @@ class EnginePartRepository:
     @staticmethod
     def get_part_with_dependencies(
         part_id: str,
-    ) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
         """
         Get an engine part by ID along with its dependencies
 
@@ -70,7 +71,7 @@ class EnginePartRepository:
         return part, dependencies
 
     @staticmethod
-    def get_part_object(part_id: str) -> Union[BaseEnginePart, None]:
+    def get_part_object(part_id: str) -> BaseEnginePart | None:
         """
         Get a fully reconstructed engine part object by ID
 
@@ -91,7 +92,6 @@ class EnginePartRepository:
 
         # Build dependency objects recursively
         dep_objects = {}
-        dependency_chain = {}
 
         # Sort dependencies topologically
         for dep in direct_dependencies:
@@ -107,7 +107,7 @@ class EnginePartRepository:
         return EnginePart.reconstruct_part_object(part, dep_objects)
 
     @staticmethod
-    def get_all_parts(user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_all_parts(user_id: str | None = None) -> list[dict[str, Any]]:
         """
         Get all engine parts, optionally filtered by user
 
@@ -139,8 +139,8 @@ class EnginePartRepository:
 
     @staticmethod
     def get_parts_by_type(
-        part_type: str, user_id: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+        part_type: str, user_id: str | None = None
+    ) -> list[dict[str, Any]]:
         """
         Get all parts of a specific type, optionally filtered by user
 
@@ -186,7 +186,7 @@ class EnginePartRepository:
             return False
 
     @staticmethod
-    def get_analysis_result(part_id: str) -> Optional[str]:
+    def get_analysis_result(part_id: str) -> str | None:
         """
         Get the analysis result for a part by ID
 

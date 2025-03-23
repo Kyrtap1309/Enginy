@@ -1,11 +1,10 @@
-import json
-import importlib
-from bson import ObjectId
 from datetime import datetime
-from typing import Dict, Any, List, Optional, Type, Union
+from typing import Any
 
-from Enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
-from Enginy.engine_config import DATA_CLASS_MAP, CLASS_MAP, extract_part_data
+from bson import ObjectId
+
+from enginy.engine_config import CLASS_MAP, DATA_CLASS_MAP, extract_part_data
+from enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
 
 
 class EnginePart:
@@ -13,8 +12,8 @@ class EnginePart:
 
     @staticmethod
     def to_mongodb_format(
-        part_dict: Dict[str, Any], user_id: Optional[str] = None
-    ) -> Dict[str, Any]:
+        part_dict: dict[str, Any], user_id: str | None = None
+    ) -> dict[str, Any]:
         """
         Convert an engine part dictionary to MongoDB format
 
@@ -56,7 +55,7 @@ class EnginePart:
             part_id: ID of the part
             dependency_id: ID of the dependency
         """
-        from Enginy.database import get_db
+        from enginy.database import get_db
 
         db = get_db()
 
@@ -65,7 +64,7 @@ class EnginePart:
         )
 
     @staticmethod
-    def from_mongodb_format(mongo_doc: Dict[str, Any]) -> Dict[str, Any]:
+    def from_mongodb_format(mongo_doc: dict[str, Any]) -> dict[str, Any]:
         """
         Convert MongoDB document to a dictionary format for the application
 
@@ -87,8 +86,8 @@ class EnginePart:
 
     @classmethod
     def reconstruct_part_object(
-        cls, part_dict: Dict[str, Any], dependencies: Dict[str, Any] = None
-    ) -> Union[BaseEnginePart, None]:
+        cls, part_dict: dict[str, Any], dependencies: dict[str, Any] = None
+    ) -> BaseEnginePart | None:
         """
         Reconstruct a part object from stored data and its dependencies
 

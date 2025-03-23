@@ -1,13 +1,12 @@
 import json
-from typing import Union, Any, List
-from plotly import utils
 from dataclasses import dataclass
+from typing import Any
 
-from Enginy.engine_parts.engine_part import EnginePart
-from Enginy.engine_parts import gas_management, engine_thermo
-from Enginy.engine_parts.inlet import Inlet
+from plotly import utils
 
-from Enginy.isa import isa
+from enginy.engine_parts import engine_thermo, gas_management
+from enginy.engine_parts.engine_part import EnginePart
+from enginy.engine_parts.inlet import Inlet
 
 
 @dataclass
@@ -32,7 +31,7 @@ class Compressor(EnginePart):
     """
 
     def __init__(
-        self, compressor_data: Union[dict, CompressorData], inlet: Inlet, **kwargs
+        self, compressor_data: dict | CompressorData, inlet: Inlet, **kwargs
     ) -> None:
         """
         Initialize the Compressor object with provided compressor data and inlet dependency.
@@ -56,7 +55,7 @@ class Compressor(EnginePart):
         self.compress: float = self.compressor_data.compress
         self.comp_eta: float = self.compressor_data.comp_eta
 
-        self.gas: List[Any] = inlet.gas
+        self.gas: list[Any] = inlet.gas
         self.M_comp_in: float = inlet.M_inlet_out
 
         self.st_out, convergence, self.compressor_work = (
@@ -65,7 +64,7 @@ class Compressor(EnginePart):
                 n_stages=self.stage_number,
                 compress=self.compress,
                 comp_eta=self.comp_eta,
-                M_in=self.M_comp_in,
+                mach_in=self.M_comp_in,
                 gas_out=self.gas[3],
             )
         )
@@ -80,22 +79,22 @@ class Compressor(EnginePart):
         Returns:
             str: JSON-encoded plot of the compressor analysis.
         """
-        compressor_T: List[float] = []
-        compressor_p: List[float] = []
-        compressor_X: List[Any] = []
+        compressor_t: list[float] = []
+        compressor_p: list[float] = []
+        compressor_x: list[Any] = []
 
         for x in range(0, 4):
-            compressor_T.append(self.gas[gas_management.st[x]].T)
+            compressor_t.append(self.gas[gas_management.st[x]].T)
             compressor_p.append(self.gas[gas_management.st[x]].P)
-            compressor_X.append(self.gas[gas_management.st[x]].X)
+            compressor_x.append(self.gas[gas_management.st[x]].X)
 
-        plot = gas_management.plot_T_s(
-            compressor_T,
+        plot = gas_management.plot_temperature_enthropy(
+            compressor_t,
             compressor_p,
-            compressor_X,
+            compressor_x,
             gas_management.reaction_mechanism,
             gas_management.phase_name,
         )
 
-        graphJSON: str = json.dumps(plot, cls=utils.PlotlyJSONEncoder)
-        return graphJSON
+        graphjson: str = json.dumps(plot, cls=utils.PlotlyJSONEncoder)
+        return graphjson

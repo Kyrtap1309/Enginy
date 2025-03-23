@@ -1,10 +1,9 @@
 from enum import Enum
-from typing import Dict, Type
 
-from Enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
-from Enginy.engine_parts.inlet import Inlet, InletData
-from Enginy.engine_parts.compressor import Compressor, CompressorData
-from Enginy.engine_parts.combustor import Combustor, CombustorData
+from enginy.engine_parts.combustor import Combustor, CombustorData
+from enginy.engine_parts.compressor import Compressor, CompressorData
+from enginy.engine_parts.engine_part import EnginePart as BaseEnginePart
+from enginy.engine_parts.inlet import Inlet, InletData
 
 
 class EnginePartType(Enum):
@@ -15,13 +14,13 @@ class EnginePartType(Enum):
 
 AVAILABLE_PARTS = [e.value for e in EnginePartType]
 
-CLASS_MAP: Dict[str, Type[BaseEnginePart]] = {
+CLASS_MAP: dict[str, type[BaseEnginePart]] = {
     "Inlet": Inlet,
     "Compressor": Compressor,
     "Combustor": Combustor,
 }
 
-DATA_CLASS_MAP: Dict[str, Type] = {
+DATA_CLASS_MAP: dict[str, type] = {
     "Inlet": InletData,
     "Compressor": CompressorData,
     "Combustor": CombustorData,

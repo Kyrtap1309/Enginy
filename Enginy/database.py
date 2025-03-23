@@ -1,8 +1,9 @@
+import logging
 import os
 import time
-from pymongo import MongoClient
+
 from flask_pymongo import PyMongo
-import logging
+from pymongo import MongoClient
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
