@@ -19,6 +19,47 @@ flask-pymongo = "^3.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
+poethepoet = "^0.33.1"
+ruff = "^0.11.2"
+
+[tool.poe.tasks]
+ruff-check = "ruff check ."
+ruff-format = "ruff format ."
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",    
+    "F",   
+    "B",    
+    "I",    
+    "N",    
+    "UP",   
+    "PL",   
+    "C90",  
+    "SIM",  
+    "PERF", 
+]
+
+exclude = [
+    ".git",
+    "__pycache__",
+    "venv",
+    ".venv",
+]
+
+ignore = [
+    "PLR0913", 
+    "E501",    
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
 
 [build-system]
 requires = ["poetry-core"]
