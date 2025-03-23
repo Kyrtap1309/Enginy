@@ -8,6 +8,7 @@ from Enginy.engine_parts import engine_thermo
 from Enginy.engine_parts import gas_management
 from Enginy.engine_parts.engine_part import EnginePart
 
+
 @dataclass
 class InletData:
     altitude: float
@@ -43,7 +44,6 @@ class Inlet(EnginePart):
         else:
             self.inlet_data = inlet_data
 
-
         self.T_ambient: float = isa.ISA_T(self.inlet_data.altitude)
         self.p_ambient: float = isa.ISA_p(self.inlet_data.altitude)
         self.M_ambient: float = self.inlet_data.M_ambient_input
@@ -51,12 +51,16 @@ class Inlet(EnginePart):
         self.A_1: float = self.inlet_data.A1
         self.A_2: float = self.inlet_data.A2
         self.inlet_eta: float = self.inlet_data.eta
-        self.gas: dict[Any, Any] = gas_management.initialize_gas(self.T_ambient, self.p_ambient)
+        self.gas: dict[Any, Any] = gas_management.initialize_gas(
+            self.T_ambient, self.p_ambient
+        )
 
         _ambient_stage_index: str = gas_management.st[0]
         self.ambient_stage_gas = self.gas[_ambient_stage_index]
 
-        self.v_input: float = self.M_ambient * engine_thermo.get_a(self.ambient_stage_gas)
+        self.v_input: float = self.M_ambient * engine_thermo.get_a(
+            self.ambient_stage_gas
+        )
         self.gamma: float = engine_thermo.get_gamma(self.ambient_stage_gas)
         self.T_total_inlet_in: float = engine_thermo.get_T_total(
             self.ambient_stage_gas.T, self.gamma, self.M_ambient
@@ -137,5 +141,5 @@ class Inlet(EnginePart):
             gas_management.phase_name,
         )
 
-        graphJSON = json.dumps(plot, cls = utils.PlotlyJSONEncoder)
+        graphJSON = json.dumps(plot, cls=utils.PlotlyJSONEncoder)
         return graphJSON

@@ -17,15 +17,16 @@ AVAILABLE_PARTS = [e.value for e in EnginePartType]
 
 CLASS_MAP: Dict[str, Type[BaseEnginePart]] = {
     "Inlet": Inlet,
-    "Compressor": Compressor,  
-    "Combustor": Combustor
+    "Compressor": Compressor,
+    "Combustor": Combustor,
 }
 
 DATA_CLASS_MAP: Dict[str, Type] = {
     "Inlet": InletData,
     "Compressor": CompressorData,
-    "Combustor": CombustorData
+    "Combustor": CombustorData,
 }
+
 
 def extract_part_data(part_obj: BaseEnginePart) -> dict:
     """

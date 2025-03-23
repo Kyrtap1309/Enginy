@@ -8,6 +8,7 @@ from Enginy.engine_parts import gas_management
 from Enginy.engine_parts.engine_part import EnginePart
 from Enginy.engine_parts.compressor import Compressor
 
+
 @dataclass
 class CombustorData:
     """
@@ -20,17 +21,25 @@ class CombustorData:
         max_f (float): Maximum fuel percentage.
         min_f (float): Minimum fuel percentage.
     """
+
     throttle_position: float
     V_nominal: float
     Pressure_lost: float
     max_f: float
     min_f: float
 
+
 class Combustor(EnginePart):
     """
     Represents a combustor component of an aircraft jet engine.
     """
-    def __init__(self, combustor_data: Union[dict, CombustorData], compressor: Compressor, **kwargs):
+
+    def __init__(
+        self,
+        combustor_data: Union[dict, CombustorData],
+        compressor: Compressor,
+        **kwargs,
+    ):
         """
         Initialize the Combustor object with provided combustor data and compressor dependency.
 
@@ -44,7 +53,7 @@ class Combustor(EnginePart):
             compressor (Compressor): An instance of Compressor providing necessary inlet conditions.
             kwargs: Additional keyword arguments.
         """
-        self.compressor: Compressor = compressor 
+        self.compressor: Compressor = compressor
 
         if isinstance(combustor_data, dict):
             self.combustor_data = CombustorData(**combustor_data)
@@ -63,7 +72,6 @@ class Combustor(EnginePart):
 
         self._gas_update()
 
-        
     def _gas_update(self):
         """
         Update the gas properties based on the combustor parameters.
@@ -72,25 +80,36 @@ class Combustor(EnginePart):
         using the combustor solver. Equilibrates the output gas station after computation.
         """
 
-        phi: float = (self.max_fuel - self.min_fuel) * self.throttle_position + self.min_fuel # 
-        
-        self.gas[4].set_equivalence_ratio(phi=phi, fuel=gas_management.comp_fuel, oxidizer=gas_management.comp_air, basis='mole')
-        
-        mixt_frac: float = self.gas[4].mixture_fraction(fuel=gas_management.comp_fuel, oxidizer=gas_management.comp_air, basis='mass')
+        phi: float = (
+            self.max_fuel - self.min_fuel
+        ) * self.throttle_position + self.min_fuel  #
 
+        self.gas[4].set_equivalence_ratio(
+            phi=phi,
+            fuel=gas_management.comp_fuel,
+            oxidizer=gas_management.comp_air,
+            basis="mole",
+        )
 
-        M_calc, conv = engine_thermo.combustor_solver(gas_in=self.gas[3],
-                                       V_nominal=self.V_nominal,
-                                       M_in=self.M_comb_in,
-                                       pressure_lost=self.pressure_lost,
-                                       gas_out=self.gas[4]
-                                       )
+        mixt_frac: float = self.gas[4].mixture_fraction(
+            fuel=gas_management.comp_fuel,
+            oxidizer=gas_management.comp_air,
+            basis="mass",
+        )
+
+        M_calc, conv = engine_thermo.combustor_solver(
+            gas_in=self.gas[3],
+            V_nominal=self.V_nominal,
+            M_in=self.M_comb_in,
+            pressure_lost=self.pressure_lost,
+            gas_out=self.gas[4],
+        )
         if conv:
             self.M_comb_out = M_calc
         else:
             print("Combustor calculation did not converge")
-        
-        self.gas[4].equilibrate('HP')
+
+        self.gas[4].equilibrate("HP")
 
     def analyze(self) -> str:
         """
@@ -119,8 +138,5 @@ class Combustor(EnginePart):
             gas_management.phase_name,
         )
 
-        graphJSON: str = json.dumps(plot, cls = utils.PlotlyJSONEncoder)
+        graphJSON: str = json.dumps(plot, cls=utils.PlotlyJSONEncoder)
         return graphJSON
-        
-    
-    

@@ -4,22 +4,24 @@ from Enginy.engine_parts.inlet import Inlet
 import json
 import math
 
+
 @pytest.fixture
 def inlet_json_file(tmp_path):
     """Fixture that creates a temporary JSON file with inlet data."""
     sample_inlet_json = {
-        "altitude": 10000,       # Altitude in meters
-        "M_inlet_input": 0.8,    # Mach number at the inlet
-        "mass_flow": 100,        # Mass flow in kg/s
-        "A1": 1.0,               # Inlet area in m^2
-        "A2": 0.8,               # Outlet area in m^2
-        "eta": 0.95              # Efficiency of the inlet
+        "altitude": 10000,  # Altitude in meters
+        "M_inlet_input": 0.8,  # Mach number at the inlet
+        "mass_flow": 100,  # Mass flow in kg/s
+        "A1": 1.0,  # Inlet area in m^2
+        "A2": 0.8,  # Outlet area in m^2
+        "eta": 0.95,  # Efficiency of the inlet
     }
     inlet_json_path = tmp_path / "test_inlet_data.json"
-    with open(inlet_json_path, 'w') as json_file:
+    with open(inlet_json_path, "w") as json_file:
         json.dump(sample_inlet_json, json_file)
-    
+
     return str(inlet_json_path)
+
 
 def test_inlet_initialization(inlet_json_file):
     """Test if the Inlet class initializes correctly and reads data from the JSON file."""
@@ -44,6 +46,7 @@ def test_mach_inlet_converges(inlet_json_file):
     assert mach is not None
     assert converged is True
     assert mach > 0  # The Mach number must be positive
+
 
 def test_mach_inlet_non_convergence(inlet_json_file):
     """Test the mach_inlet method when convergence is not achieved."""
