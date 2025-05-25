@@ -1,4 +1,6 @@
+from collections.abc import Callable
 from enum import Enum
+from typing import Any
 
 from enginy.engine_parts.combustor import Combustor, CombustorData
 from enginy.engine_parts.compressor import Compressor, CompressorData
@@ -14,7 +16,7 @@ class EnginePartType(Enum):
 
 AVAILABLE_PARTS = [e.value for e in EnginePartType]
 
-CLASS_MAP: dict[str, type[BaseEnginePart]] = {
+CLASS_MAP: dict[str, Callable[..., BaseEnginePart]] = {
     "Inlet": Inlet,
     "Compressor": Compressor,
     "Combustor": Combustor,
@@ -27,7 +29,7 @@ DATA_CLASS_MAP: dict[str, type] = {
 }
 
 
-def extract_part_data(part_obj: BaseEnginePart) -> dict:
+def extract_part_data(part_obj: BaseEnginePart) -> dict[str, Any]:
     """
     Extract data from the part object based on its type.
 
@@ -41,5 +43,7 @@ def extract_part_data(part_obj: BaseEnginePart) -> dict:
     data_attr_name = f"{part_class_name}_data"
 
     if hasattr(part_obj, data_attr_name):
-        return vars(getattr(part_obj, data_attr_name))
+        data_obj = getattr(part_obj, data_attr_name)
+        result: dict[str, Any] = vars(data_obj)
+        return result
     return {}

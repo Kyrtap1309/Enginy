@@ -5,6 +5,7 @@ from enginy.engine_parts import gas_management
 
 MIN_COMPRESSOR_NUM_OF_STAGES = 2
 
+
 def get_p_total(p_static: float, gamma: float, mach: float) -> float:
     """
     Calculate the stagnation pressure for isentropic process
@@ -15,7 +16,9 @@ def get_p_total(p_static: float, gamma: float, mach: float) -> float:
     return:
         p_total: Stagnation pressure of a gas
     """
-    p_total = p_static * ((1 + ((gamma - 1) / 2) * mach**2) ** (gamma / (gamma - 1)))
+    p_total: float = p_static * (
+        (1 + ((gamma - 1) / 2) * mach**2) ** (gamma / (gamma - 1))
+    )
     return p_total
 
 
@@ -31,7 +34,7 @@ def get_temperature_total(
     return:
         temperature_total: Stagnation temperature of a gas
     """
-    temperature_total = temperature_static * (1 + ((gamma - 1) / 2) * mach**2)
+    temperature_total: float = temperature_static * (1 + ((gamma - 1) / 2) * mach**2)
     return temperature_total
 
 
@@ -47,7 +50,7 @@ def get_temperature_static(
     return:
         temperature_static: Static temperature of a gas
     """
-    temperature_static = temperature_total / (1 + ((gamma - 1) / 2) * mach**2)
+    temperature_static: float = temperature_total / (1 + ((gamma - 1) / 2) * mach**2)
     return temperature_static
 
 
@@ -68,7 +71,7 @@ def get_p_static(
     return:
         p_static: Static pressure of a gas
     """
-    p_static = p_total * (temperature_static / temperature_total) ** (
+    p_static: float = p_total * (temperature_static / temperature_total) ** (
         gamma / (gamma - 1)
     )
     return p_static
@@ -82,7 +85,7 @@ def get_gamma(gas: ct.Solution) -> float:
     return:
         gamma: het capacity ratio of a gas
     """
-    gamma = gas.cp / gas.cv
+    gamma: float = float(gas.cp / gas.cv)  # Fix: Explicitly cast to float
     return gamma
 
 
@@ -94,7 +97,7 @@ def get_gas_constant(gas: ct.Solution) -> float:
     return:
         R: gas constant (J/(kg * K))
     """
-    gas_constant = gas.cp - gas.cv
+    gas_constant: float = float(gas.cp - gas.cv)  # Fix: Explicitly cast to float
     return gas_constant
 
 
@@ -107,7 +110,7 @@ def get_a(gas: ct.Solution) -> float:
         a: local speed of sound [m/s]
     """
     a = np.sqrt(get_gas_constant(gas) * get_gamma(gas) * gas.T)
-    return a
+    return float(a)
 
 
 def mach_solver(
@@ -136,8 +139,9 @@ def mach_solver(
         mach_out: Mach number for gas at the end of inlet
         convergence: True if calculations are converged
     """
-    n_iter = 0  # iteration counter
-    converged = False  # Tracking of convergence
+    n_iter = 0
+    converged = False
+    mach_out = 0.0
 
     # calculated input gas properties
     velocity_in = mach_in * get_a(gas_in)
@@ -196,7 +200,7 @@ def _process_compressor_stages(
 ) -> tuple[float, float, float, np.ndarray, np.ndarray, float]:
     """
     Process all compressor stages and return the results.
-    
+
     Args:
         gas_in: Gas at entrance of compressor
         n_stages: Number of stages
@@ -206,7 +210,7 @@ def _process_compressor_stages(
         stage_multiplier: Multipliers for each stage
         temperature_total_in: Total temperature at inlet
         p_total_in: Total pressure at inlet
-        
+
     Returns:
         temperature_static: Final static temperature
         p_static: Final static pressure
@@ -223,17 +227,16 @@ def _process_compressor_stages(
     )
     stage_gas.X = gas_management.comp_air
     stage_gas.TP = gas_in.T, gas_in.P
-    
+
     # compressor output data
-    compressor_work = 0
-    
+    compressor_work = 0.0
+
     # Stage calculation
     p_total_stage = p_total_in
     temperature_total_stage = temperature_total_in
-    
+
     for st_counter in range(n_stages):
         temperature_i = stage_gas.T
-
         gamma = get_gamma(stage_gas)
         p_total = (
             get_p_total(stage_gas.P, gamma, mach_in)
@@ -247,21 +250,8 @@ def _process_compressor_stages(
             + temperature_total_stage
         )
 
-        temperature_static = get_temperature_static(
-            temperature_total, gamma, mach_in
-        )
-        p_static = get_p_static(
-            p_total, temperature_static, temperature_total, gamma
-        )
-        stage_gas.TP = temperature_static, p_static
-
-        gamma = get_gamma(stage_gas)
-        temperature_static = get_temperature_static(
-            temperature_total, gamma, mach_in
-        )
-        p_static = get_p_static(
-            p_total, temperature_static, temperature_total, gamma
-        )
+        temperature_static = get_temperature_static(temperature_total, gamma, mach_in)
+        p_static = get_p_static(p_total, temperature_static, temperature_total, gamma)
         stage_gas.TP = temperature_static, p_static
 
         # store conditions for plotting later
@@ -279,7 +269,7 @@ def _process_compressor_stages(
 
     # Calculate temperature differences between stages
     if n_stages > MIN_COMPRESSOR_NUM_OF_STAGES:  # typical multi-stage case
-        max_delta_t = np.diff(stages_temperature_out).max()
+        max_delta_t = float(np.diff(stages_temperature_out).max())
     elif n_stages > 1:  # special case : np.diff will drop one in vector length
         max_delta_t = max(
             stages_temperature_out[1] - stages_temperature_out[0],
@@ -287,8 +277,15 @@ def _process_compressor_stages(
         )
     else:  # case for 1 stage
         max_delta_t = temperature_static - gas_in.T
-    
-    return temperature_static, p_static, compressor_work, stages_temperature_out, stages_p_out, max_delta_t
+
+    return (
+        temperature_static,
+        p_static,
+        compressor_work,
+        stages_temperature_out,
+        stages_p_out,
+        max_delta_t,
+    )
 
 
 def compressor_solver(
@@ -299,7 +296,7 @@ def compressor_solver(
     mach_in: float,
     gas_out: ct.Solution,
     max_iterations: int = 5000,
-):
+) -> tuple[list[tuple[float, float]], bool, float]:
     """
     Calculate output parameters of compressor
 
@@ -324,44 +321,49 @@ def compressor_solver(
 
     # Pressure ratio per stage
     compress_stage = compress ** (1 / n_stages)
-    n_stages = int(n_stages)
+    n_stages_int = int(n_stages)
 
     # gradually shift pressure towards the initial stages
-    stage_multiplier = np.ones(n_stages)
+    stage_multiplier = np.ones(n_stages_int)
     shift = 0.001  # overall shift amount, per iteration
-    shifter = np.ones(n_stages)
-    step_shift = shift / n_stages  # shift step per stage
+    shifter = np.ones(n_stages_int)
+    step_shift = shift / n_stages_int  # shift step per stage
 
-    center = int(n_stages / 2)
+    center = int(n_stages_int / 2)
     for i in range(center):
         shifter[i] = 1 + (center - i) * step_shift  # shift initial stages UP
-        shifter[n_stages - i - 1] = 1 - (
+        shifter[n_stages_int - i - 1] = 1 - (
             (center - i) * step_shift
         )  # shift later stages DOWN
 
     # pressure rise shift loop control
     converged = False
     n_iter = 0
-    prev_delta_t = 1000  # start with high value to trigger condition
-    temperature_static = 0  # Initialize to avoid UnboundLocalError
-    p_static = 0  # Initialize to avoid UnboundLocalError
-    compressor_work = 0
-    stages_temperature_out = np.zeros(n_stages)
-    stages_p_out = np.zeros(n_stages)
+    prev_delta_t = 1000.0  # start with high value to trigger condition
+    temperature_static = 0.0
+    p_static = 0.0
+    compressor_work = 0.0
+    stages_temperature_out = np.zeros(n_stages_int)
+    stages_p_out = np.zeros(n_stages_int)
 
     while not converged and n_iter <= max_iterations:
         # Process all stages in the helper function
-        temperature_static, p_static, compressor_work, stages_temperature_out, stages_p_out, max_delta_t = (
-            _process_compressor_stages(
-                gas_in, 
-                n_stages, 
-                compress_stage, 
-                comp_eta, 
-                mach_in, 
-                stage_multiplier, 
-                temperature_total_in, 
-                p_total_in
-            )
+        (
+            temperature_static,
+            p_static,
+            compressor_work,
+            stages_temperature_out,
+            stages_p_out,
+            max_delta_t,
+        ) = _process_compressor_stages(
+            gas_in,
+            n_stages_int,
+            compress_stage,
+            comp_eta,
+            mach_in,
+            stage_multiplier,
+            temperature_total_in,
+            p_total_in,
         )
 
         # loop objective is to get minimum temperature difference between all stages
@@ -369,7 +371,9 @@ def compressor_solver(
         if max_delta_t < prev_delta_t and n_iter < max_iterations:
             n_iter += 1
             # increase pressure shift towards initial stages
-            stage_multiplier = np.multiply(stage_multiplier, shifter)
+            # Fix: Use explicit array assignment to maintain proper typing
+            multiplied_result = np.multiply(stage_multiplier, shifter)
+            stage_multiplier[:] = multiplied_result
             prev_delta_t = max_delta_t
 
         elif n_iter >= max_iterations:
@@ -399,7 +403,7 @@ def combustor_solver(
     mach_in: float,
     pressure_lost: float,
     gas_out: ct.Solution,
-):
+) -> tuple[float, bool]:
     """
     Calculate output parameters of combustor
 

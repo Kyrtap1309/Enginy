@@ -24,12 +24,14 @@ class EnginePartRepository:
             ID of the saved part
         """
         db = get_db()
+        if db is None:
+            raise RuntimeError("Database not available")
         mongo_doc = EnginePart.to_mongodb_format(part_dict, user_id)
         result = db.engine_parts.insert_one(mongo_doc)
         return str(result.inserted_id)
 
     @staticmethod
-    def get_part(part_id: str) -> dict[str, Any]:
+    def get_part(part_id: str) -> dict[str, Any] | None:
         """
         Get an engine part by ID
 
@@ -40,6 +42,8 @@ class EnginePartRepository:
             Dictionary containing part data
         """
         db = get_db()
+        if db is None:
+            return None
         mongo_doc = db.engine_parts.find_one({"_id": ObjectId(part_id)})
         if mongo_doc:
             return EnginePart.from_mongodb_format(mongo_doc)
@@ -48,7 +52,7 @@ class EnginePartRepository:
     @staticmethod
     def get_part_with_dependencies(
         part_id: str,
-    ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    ) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
         """
         Get an engine part by ID along with its dependencies
 
@@ -90,20 +94,16 @@ class EnginePartRepository:
         if not part:
             return None
 
-        # Build dependency objects recursively
         dep_objects = {}
 
-        # Sort dependencies topologically
         for dep in direct_dependencies:
             dep_part_id = dep["id"]
             dep_type = dep["name"].lower()
 
-            # Get the dependency's dependencies recursively
             dep_object = EnginePartRepository.get_part_object(dep_part_id)
             if dep_object:
                 dep_objects[dep_type] = dep_object
 
-        # Reconstruct the part object with all dependencies
         return EnginePart.reconstruct_part_object(part, dep_objects)
 
     @staticmethod
@@ -118,6 +118,8 @@ class EnginePartRepository:
             List of dictionaries containing part data
         """
         db = get_db()
+        if db is None:
+            return []
         query = {"user_id": user_id} if user_id else {}
         cursor = db.engine_parts.find(query).sort("created_at", -1)
         return [EnginePart.from_mongodb_format(doc) for doc in cursor]
@@ -134,6 +136,8 @@ class EnginePartRepository:
             True if deletion was successful, False otherwise
         """
         db = get_db()
+        if db is None:
+            return False
         result = db.engine_parts.delete_one({"_id": ObjectId(part_id)})
         return result.deleted_count > 0
 
@@ -152,6 +156,8 @@ class EnginePartRepository:
             List of dictionaries containing part data
         """
         db = get_db()
+        if db is None:
+            return []
         query = {"name": part_type}
         if user_id:
             query["user_id"] = user_id
@@ -172,6 +178,8 @@ class EnginePartRepository:
         """
         try:
             db = get_db()
+            if db is None:
+                return False
             db.engine_parts.update_one(
                 {"_id": ObjectId(part_id)},
                 {
@@ -197,7 +205,10 @@ class EnginePartRepository:
             JSON-encoded analysis data or None
         """
         db = get_db()
+        if db is None:
+            return None
         part = db.engine_parts.find_one({"_id": ObjectId(part_id)})
         if part and "analysis_result" in part:
-            return part["analysis_result"]
+            analysis_result = part["analysis_result"]
+            return str(analysis_result) if analysis_result is not None else None
         return None

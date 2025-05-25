@@ -38,8 +38,8 @@ class Combustor(EnginePart):
         self,
         combustor_data: dict | CombustorData,
         compressor: Compressor,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """
         Initialize the Combustor object with provided combustor data and compressor dependency.
 
@@ -65,14 +65,14 @@ class Combustor(EnginePart):
         self.V_nominal: float = self.combustor_data.V_nominal
         self.pressure_lost: float = self.combustor_data.Pressure_lost
 
-        self.gas: list[Any] = compressor.gas
+        self.gas: dict[str | int, Any] = compressor.gas
 
         self.max_fuel: float = self.combustor_data.max_f
         self.min_fuel: float = self.combustor_data.min_f
 
         self._gas_update()
 
-    def _gas_update(self):
+    def _gas_update(self) -> None:
         """
         Update the gas properties based on the combustor parameters.
 

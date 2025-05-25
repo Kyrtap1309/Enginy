@@ -24,15 +24,15 @@ class EnginePart:
         Returns:
             MongoDB-ready document
         """
-        # Extract data from the part object
         part_obj = part_dict.get("part")
+        if part_obj is None:
+            raise ValueError("Part object is required")
+
         part_class = part_obj.__class__.__name__
 
-        # Store part data based on its type
         part_data = extract_part_data(part_obj)
 
-        # Create MongoDB document
-        mongo_doc = {
+        mongo_doc: dict[str, Any] = {
             "name": part_dict.get("name"),
             "user_part_name": part_dict.get("user_part_name"),
             "part_type": part_class,
@@ -58,6 +58,8 @@ class EnginePart:
         from enginy.database import get_db
 
         db = get_db()
+        if db is None:
+            raise RuntimeError("Database not available")
 
         db.engine_parts.update_one(
             {"_id": ObjectId(part_id)}, {"$push": {"dependencies": dependency_id}}
@@ -86,7 +88,7 @@ class EnginePart:
 
     @classmethod
     def reconstruct_part_object(
-        cls, part_dict: dict[str, Any], dependencies: dict[str, Any] = None
+        cls, part_dict: dict[str, Any], dependencies: dict[str, Any] | None = None
     ) -> BaseEnginePart | None:
         """
         Reconstruct a part object from stored data and its dependencies
@@ -98,23 +100,25 @@ class EnginePart:
         Returns:
             Reconstructed engine part object
         """
+        if dependencies is None:
+            dependencies = {}
+
         part_type = part_dict.get("part_type")
         part_data = part_dict.get("part_data", {})
 
-        # Get the appropriate data class
+        if part_type is None:
+            return None
+
         data_class = DATA_CLASS_MAP.get(part_type)
         if not data_class:
             return None
 
-        # Create an instance of the data class with stored data
         data_instance = data_class(**part_data)
 
-        # Get the part class
         part_class = CLASS_MAP.get(part_type)
         if not part_class:
             return None
 
-        # Instantiate the part with its data and dependencies
         if dependencies:
             return part_class(data_instance, **dependencies)
         else:

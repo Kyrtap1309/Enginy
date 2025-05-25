@@ -24,7 +24,9 @@ class Inlet(EnginePart):
     Represents an inlet component of an aircraft jet engine.
     """
 
-    def __init__(self, inlet_data: dict | InletData, **kwargs) -> None:
+    def __init__(
+        self, inlet_data: dict | InletData, **kwargs: dict[str, float]
+    ) -> None:
         """
         Initialize the Inlet object with provided inlet data.
 
@@ -51,11 +53,11 @@ class Inlet(EnginePart):
         self.A_1: float = self.inlet_data.A1
         self.A_2: float = self.inlet_data.A2
         self.inlet_eta: float = self.inlet_data.eta
-        self.gas: dict[Any, Any] = gas_management.initialize_gas(
+        self.gas: dict[str | int, Any] = gas_management.initialize_gas(
             self.temperature_ambient, self.p_ambient
         )
 
-        _ambient_stage_index: str = gas_management.st[0]
+        _ambient_stage_index: str | int = gas_management.st[0]
         self.ambient_stage_gas = self.gas[_ambient_stage_index]
 
         self.v_input: float = self.M_ambient * engine_thermo.get_a(
@@ -69,10 +71,10 @@ class Inlet(EnginePart):
             self.ambient_stage_gas.P, self.gamma, self.M_ambient
         )
 
-        _inlet_in_stage_index: int = gas_management.st[1]
+        _inlet_in_stage_index: str | int = gas_management.st[1]
         self.inlet_in_stage_gas = self.gas[_inlet_in_stage_index]
 
-        _inlet_out_stage_index: int = gas_management.st[2]
+        _inlet_out_stage_index: str | int = gas_management.st[2]
         self.inlet_out_stage_gas = self.gas[_inlet_out_stage_index]
 
         self.mach_inlet_from_ambient_to_entrance()

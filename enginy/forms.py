@@ -6,7 +6,7 @@ from wtforms.validators import DataRequired, NumberRange
 
 
 # Combine the ABCMeta with the FlaskForm metaclass to support abstract methods.
-class FormMeta(ABCMeta, type(FlaskForm)):
+class FormMeta(ABCMeta, type(FlaskForm)):  # type: ignore
     pass
 
 

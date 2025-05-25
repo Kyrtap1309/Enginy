@@ -1,6 +1,7 @@
 import importlib
 import os
 from datetime import datetime
+from typing import Any
 
 from flask import (
     Flask,
@@ -13,6 +14,7 @@ from flask import (
     session,
     url_for,
 )
+from werkzeug.wrappers import Response as WerkzeugResponse
 
 from enginy.database import init_app
 from enginy.engine_config import (
@@ -32,15 +34,13 @@ app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "default-secret-ke
 
 init_app(app)
 
-# Check MongoDB status
 mongodb_available = app.config.get("MONGO_AVAILABLE", False)
 if not mongodb_available:
     app.logger.warning("MongoDB is not available. Application running in limited mode.")
 
 ENGINE_PARTS_CLASSES = CLASS_MAP
 
-# Dynamically import and map form classes.
-AVAILABLE_FORMS: dict[str, BasePartForm] = {}
+AVAILABLE_FORMS: dict[str, type[BasePartForm]] = {}
 for part in AVAILABLE_PARTS:
     try:
         form_class = getattr(importlib.import_module("enginy.forms"), f"{part}Form")
@@ -49,13 +49,13 @@ for part in AVAILABLE_PARTS:
         app.logger.error(f"Could not import form for {part}: {e}")
 
 
-def get_current_user_id() -> str | None:
+def get_current_user_id() -> str:
     """Get the current user ID from session"""
     # Placeholder: In the future, this will be from authentication.
     # For now, we'll use a session-based pseudo user ID
     if "user_id" not in session:
         session["user_id"] = f"session_{datetime.now().timestamp()}"
-    return session["user_id"]
+    return str(session["user_id"])
 
 
 @app.route("/")
@@ -80,7 +80,7 @@ def index() -> str:
 
 
 @app.route("/create_part", methods=["GET", "POST"])
-def create_part() -> str | Response:
+def create_part() -> str | WerkzeugResponse:
     """
     Create a new engine part by handling GET and POST requests.
 
@@ -94,7 +94,6 @@ def create_part() -> str | Response:
         - Redirect to the index page after successful creation.
         - Rendered form page with errors if validation fails.
     """
-    # Get the type of part from query parameter (default is "Inlet")
     part_type_str = request.args.get("type", EnginePartType.INLET.value)
     user_id = get_current_user_id()
 
@@ -103,13 +102,11 @@ def create_part() -> str | Response:
     except ValueError:
         part_type = EnginePartType.INLET
 
-    # Get the corresponding form class (defaulting to InletForm) and create an instance.
     form_class = AVAILABLE_FORMS.get(
         part_type.value, AVAILABLE_FORMS[EnginePartType.INLET.value]
     )
     form = form_class()
 
-    # Dynamically set choice lists for dependency fields, e.g., inlet choice for Compressor.
     for field_name, dependency_name in form.get_dependency_fields().items():
         parts = EnginePartRepository.get_parts_by_type(dependency_name, user_id)
         choices = [(part["id"], part["user_part_name"]) for part in parts]
@@ -124,24 +121,21 @@ def create_part() -> str | Response:
         dependency_ids = {}
         part_dependencies = {}
 
-        # Collect dependencies and reconstruct dependency objects
         for field_name, dependency_name in form.get_dependency_fields().items():
             dependency_id = data.pop(field_name)
             dependency_ids[dependency_name.lower()] = dependency_id
 
-            # Reconstruct the dependency object
             dependency_obj = EnginePartRepository.get_part_object(dependency_id)
             if dependency_obj:
                 part_dependencies[dependency_name.lower()] = dependency_obj
 
-        # Create the data object for the part
         data_class = DATA_CLASS_MAP.get(part_type.value)
         if data_class:
             data_obj = data_class(**data)
 
-            # Create the part instance
             part_class = ENGINE_PARTS_CLASSES[part_type.value]
 
+            part_instance: Any
             if part_dependencies:
                 part_instance = part_class(data_obj, **part_dependencies)
             else:
@@ -174,7 +168,7 @@ def create_part() -> str | Response:
 
 
 @app.route("/delete_part/<string:part_id>", methods=["POST"])
-def delete_part(part_id: str) -> Response:
+def delete_part(part_id: str) -> WerkzeugResponse:
     """
     Delete an existing engine part by its ID.
 
@@ -201,7 +195,7 @@ def delete_part(part_id: str) -> Response:
 
 
 @app.route("/analyze_part/<string:part_id>", methods=["GET"])
-def analyze_part(part_id: str) -> str | Response:
+def analyze_part(part_id: str) -> str | WerkzeugResponse:
     """
     Analyze a single engine part and render an analysis page.
 
@@ -221,15 +215,12 @@ def analyze_part(part_id: str) -> str | Response:
         flash("Showing saved analysis result.", "info")
         return render_template("analyze.html", analysis=cached_analysis)
 
-    # No cached result, retrieve and reconstruct the part object
     part_obj = EnginePartRepository.get_part_object(part_id)
 
     if part_obj:
         try:
-            # Call the analyze method on the reconstructed part object
             analysis_json = part_obj.analyze()
 
-            # Cache the analysis result
             EnginePartRepository.save_analysis_result(part_id, analysis_json)
 
             flash("Analysis completed successfully!", "success")
@@ -237,10 +228,18 @@ def analyze_part(part_id: str) -> str | Response:
             return render_template("analyze.html", analysis=analysis_json, now=now)
         except Exception as e:
             flash(f"Error during analysis: {str(e)}", "danger")
-            return jsonify({"error": f"Analysis error: {str(e)}"}), 500
+            return Response(
+                response=f'{{"error": "Analysis error: {str(e)}"}}',
+                status=500,
+                mimetype="application/json",
+            )
     else:
         flash("Invalid part ID.", "danger")
-        return jsonify({"error": "Invalid part ID"}), 400
+        return Response(
+            response='{"error": "Invalid part ID"}',
+            status=400,
+            mimetype="application/json",
+        )
 
 
 @app.route("/analyze_engine", methods=["POST"])
@@ -256,7 +255,11 @@ def analyze_engine() -> Response:
 
     if len(parts) < MIN_REQUIRED_ENGINE_PARTS:
         flash("Not enough parts to build the engine!", "danger")
-        return jsonify({"error": "Not enough parts to build the engine!"}), 400
+        return Response(
+            response='{"error": "Not enough parts to build the engine!"}',
+            status=400,
+            mimetype="application/json",
+        )
 
     # Simple placeholder response
     engine_analysis = {
@@ -273,7 +276,13 @@ def analyze_engine() -> Response:
     }
 
     flash("Engine analysis completed!", "success")
-    return jsonify(engine_analysis)
+
+    json_response = jsonify(engine_analysis)
+    return Response(
+        response=json_response.get_data(as_text=True),
+        status=200,
+        mimetype="application/json",
+    )
 
 
 if __name__ == "__main__":

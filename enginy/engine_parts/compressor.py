@@ -31,7 +31,7 @@ class Compressor(EnginePart):
     """
 
     def __init__(
-        self, compressor_data: dict | CompressorData, inlet: Inlet, **kwargs
+        self, compressor_data: dict | CompressorData, inlet: Inlet, **kwargs: Any
     ) -> None:
         """
         Initialize the Compressor object with provided compressor data and inlet dependency.
@@ -55,7 +55,7 @@ class Compressor(EnginePart):
         self.compress: float = self.compressor_data.compress
         self.comp_eta: float = self.compressor_data.comp_eta
 
-        self.gas: list[Any] = inlet.gas
+        self.gas: dict[str | int, Any] = inlet.gas
         self.M_comp_in: float = inlet.M_inlet_out
 
         self.st_out, convergence, self.compressor_work = (

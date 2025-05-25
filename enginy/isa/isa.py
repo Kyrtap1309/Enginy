@@ -54,14 +54,16 @@ sigma_top_strato = (
 )  # ISA Sigma value at the top of Stratosphere
 
 
-def _handle_units(height: float, unit, converter: dict = CONVERT_TO_M) -> float:
+def _handle_units(
+    height: float, unit: str, converter: dict[str, float] = CONVERT_TO_M
+) -> float:
     if unit not in CONVERT_TO_M:
         raise ValueError("Invalid input unit")
     else:
         return height * converter[unit]
 
 
-def isa_delta(height: float, unit="meter") -> float:
+def isa_delta(height: float, unit: str = "meter") -> float:
     """
     Calucate ISA delta: the ISA pressure ratio, for a given pressure altitude
     limited to top of stratosphere
@@ -74,7 +76,7 @@ def isa_delta(height: float, unit="meter") -> float:
     height = _handle_units(height, unit)
 
     if H_top_troposphere >= height:
-        delta = (1 + (L / T_st) * height) ** (-g_st / (L * R))
+        delta: float = (1 + (L / T_st) * height) ** (-g_st / (L * R))
         return delta
     elif H_top_stratosphere >= height:
         delta = delta_bottom_strato * np.exp(
@@ -85,7 +87,7 @@ def isa_delta(height: float, unit="meter") -> float:
         raise ValueError("Altitude above stratospheric limit")
 
 
-def isa_p(height: float, unit="meter") -> float:
+def isa_p(height: float, unit: str = "meter") -> float:
     """
     Calculate the ISA pressure, for a input pressure altitude
     limited to top of stratosphere
@@ -100,7 +102,7 @@ def isa_p(height: float, unit="meter") -> float:
     return pressure
 
 
-def isa_theta(height: float, unit="meter") -> float:
+def isa_theta(height: float, unit: str = "meter") -> float:
     """
     Calucate ISA theta: the ISA temperature ratio, for a given temperature altitude
     limited to top of stratosphere
@@ -121,7 +123,7 @@ def isa_theta(height: float, unit="meter") -> float:
         raise ValueError("Altitude above stratospheric limit")
 
 
-def isa_temperature(height: float, unit="meter") -> float:
+def isa_temperature(height: float, unit: str = "meter") -> float:
     """
     Calculate the ISA temperature, for a input temperature altitude
     limited to top of stratosphere
@@ -136,7 +138,7 @@ def isa_temperature(height: float, unit="meter") -> float:
     return temperature
 
 
-def isa_sigma(height: float, unit="meter") -> float:
+def isa_sigma(height: float, unit: str = "meter") -> float:
     """
     Calucate ISA sigma: the ISA density ratio, for a given pressure altitude
     limited to top of stratosphere
@@ -149,7 +151,7 @@ def isa_sigma(height: float, unit="meter") -> float:
     height = _handle_units(height, unit)
 
     if H_top_troposphere >= height:
-        sigma = (1 + (L / T_st) * height) ** (-g_st / (L * R) - 1)
+        sigma: float = (1 + (L / T_st) * height) ** (-g_st / (L * R) - 1)
         return sigma
     elif H_top_stratosphere >= height:
         sigma = sigma_bottom_strato * np.exp(
@@ -160,7 +162,7 @@ def isa_sigma(height: float, unit="meter") -> float:
         raise ValueError("Altitude above stratospheric limit")
 
 
-def isa_rho(height: float, unit="meter") -> float:
+def isa_rho(height: float, unit: str = "meter") -> float:
     """
     Calculate the ISA density, for a input density altitude
     limited to top of stratosphere
@@ -175,7 +177,7 @@ def isa_rho(height: float, unit="meter") -> float:
     return rho
 
 
-def inv_isa_delta(delta: float, unit="meter") -> float:
+def inv_isa_delta(delta: float, unit: str = "meter") -> float:
     """
     Calucate ISA pressure alitute based on input ISA delta limited to top of stratosphere
     args:
@@ -185,7 +187,7 @@ def inv_isa_delta(delta: float, unit="meter") -> float:
         H: Altitude with input unit
     """
     if delta > delta_bottom_strato:
-        altitude = (T_st / L) * ((delta) ** (-(L * R) / g_st) - 1)
+        altitude: float = (T_st / L) * ((delta) ** (-(L * R) / g_st) - 1)
         altitude = _handle_units(altitude, unit, CONVERT_FROM_M)
         return altitude
     elif delta >= delta_top_strato:
@@ -198,7 +200,7 @@ def inv_isa_delta(delta: float, unit="meter") -> float:
         raise ValueError("Pressure/Altitude lower than top stratosphere level")
 
 
-def inv_isa_p(p: float, unit="meter") -> float:
+def inv_isa_p(p: float, unit: str = "meter") -> float:
     """
     Calucate ISA pressure alitute based on input ISA pressure limited to top of stratosphere
     args:
@@ -211,7 +213,7 @@ def inv_isa_p(p: float, unit="meter") -> float:
     return altitude
 
 
-def inv_isa_sigma(sigma: float, unit="meter") -> float:
+def inv_isa_sigma(sigma: float, unit: str = "meter") -> float:
     """
     Calucate  alitute based on input ISA sigma limited to top of stratosphere
     args:
@@ -221,7 +223,7 @@ def inv_isa_sigma(sigma: float, unit="meter") -> float:
         H: Altitude with input unit
     """
     if sigma > sigma_bottom_strato:
-        altitude = (T_st / L) * ((sigma) ** (1 / (-g_st / (L * R) - 1)) - 1)
+        altitude: float = (T_st / L) * ((sigma) ** (1 / (-g_st / (L * R) - 1)) - 1)
         altitude = _handle_units(altitude, unit, CONVERT_FROM_M)
         return altitude
     elif sigma >= sigma_top_strato:
@@ -234,7 +236,7 @@ def inv_isa_sigma(sigma: float, unit="meter") -> float:
         raise ValueError("Pressure/Altitude lower than top stratosphere level")
 
 
-def inv_isa_rho(rho: float, unit="meter") -> float:
+def inv_isa_rho(rho: float, unit: str = "meter") -> float:
     """
     Calucate ISA density alitute based on input ISA density limited to top of stratosphere
     args:
@@ -248,7 +250,10 @@ def inv_isa_rho(rho: float, unit="meter") -> float:
 
 
 def calibrated_v_to_mach(
-    v_calibrated, height, speed_unit="mps", altitude_unit="meter"
+    v_calibrated: float,
+    height: float,
+    speed_unit: str = "mps",
+    altitude_unit: str = "meter",
 ) -> float:
     """
     Calculate Mach number for a given calibrated airspeed and altitude
@@ -262,7 +267,7 @@ def calibrated_v_to_mach(
     """
     d = isa_delta(height, altitude_unit)
     v_calibrated = _handle_units(v_calibrated, speed_unit, CONVERT_TO_M_S)
-    ma = np.sqrt(
+    ma: float = np.sqrt(
         5
         * (
             ((1 / d) * ((1 + 0.2 * ((v_calibrated) / a_st) ** 2) ** (7 / 2) - 1) + 1)
@@ -273,7 +278,9 @@ def calibrated_v_to_mach(
     return ma
 
 
-def mach_to_calibrated_v(ma, height, speed_unit="mps", altitude_unit="meter") -> float:
+def mach_to_calibrated_v(
+    ma: float, height: float, speed_unit: str = "mps", altitude_unit: str = "meter"
+) -> float:
     """
     Calculate calibrate airspeed for a given mach number and altitude
     args:
@@ -285,7 +292,7 @@ def mach_to_calibrated_v(ma, height, speed_unit="mps", altitude_unit="meter") ->
         v_calibrated: Calibrated airspeed
     """
     d = isa_delta(height, altitude_unit)
-    v_calibrated = a_st * np.sqrt(
+    v_calibrated: float = a_st * np.sqrt(
         5 * (((d * ((1 + 0.2 * ma**2) ** (7 / 2) - 1)) + 1) ** (2 / 7) - 1)
     )
     v_calibrated = _handle_units(v_calibrated, speed_unit, converter=CONVERT_FROM_M_S)
@@ -293,11 +300,11 @@ def mach_to_calibrated_v(ma, height, speed_unit="mps", altitude_unit="meter") ->
 
 
 def true_v_to_eq_v(
-    v_true,
-    height,
-    input_speed_unit="mps",
-    altitude_unit="meter",
-    return_speed_unit="mps",
+    v_true: float,
+    height: float,
+    input_speed_unit: str = "mps",
+    altitude_unit: str = "meter",
+    return_speed_unit: str = "mps",
 ) -> float:
     """
     Calculate equivalent airspeed for a given true airspeed and altitude
@@ -312,7 +319,7 @@ def true_v_to_eq_v(
     """
     v_true = _handle_units(v_true, unit=input_speed_unit, converter=CONVERT_TO_M_S)
     height = _handle_units(height, unit=altitude_unit, converter=CONVERT_TO_M)
-    v_equivalent = v_true * np.sqrt(isa_sigma(height, unit="meter"))
+    v_equivalent: float = v_true * np.sqrt(isa_sigma(height, unit="meter"))
     v_equivalent = _handle_units(
         v_equivalent, unit=return_speed_unit, converter=CONVERT_FROM_M_S
     )
@@ -320,11 +327,11 @@ def true_v_to_eq_v(
 
 
 def eq_v_to_true_v(
-    v_equivalent,
-    height,
-    input_speed_unit="mps",
-    altitude_unit="meter",
-    return_speed_unit="mps",
+    v_equivalent: float,
+    height: float,
+    input_speed_unit: str = "mps",
+    altitude_unit: str = "meter",
+    return_speed_unit: str = "mps",
 ) -> float:
     """
     Calculate true airspeed for a given equivalent airspeed and altitude
@@ -341,12 +348,14 @@ def eq_v_to_true_v(
         v_equivalent, unit=input_speed_unit, converter=CONVERT_TO_M_S
     )
     height = _handle_units(height, unit=altitude_unit, converter=CONVERT_TO_M)
-    v_true = v_equivalent / np.sqrt(isa_sigma(height, unit="meter"))
+    v_true: float = v_equivalent / np.sqrt(isa_sigma(height, unit="meter"))
     v_true = _handle_units(v_true, unit=return_speed_unit, converter=CONVERT_FROM_M_S)
     return v_true
 
 
-def mach_to_eq_v(ma, height, alitude_unit="meter", speed_unit="mps") -> float:
+def mach_to_eq_v(
+    ma: float, height: float, alitude_unit: str = "meter", speed_unit: str = "mps"
+) -> float:
     """
     Calculate equivalent airspeed for a given mach number and altitude
     args:
@@ -357,14 +366,16 @@ def mach_to_eq_v(ma, height, alitude_unit="meter", speed_unit="mps") -> float:
     return:
         v_equivalent: Equivalent airspeed
     """
-    temp = (1 + 0.2 * ma**2) ** (7 / 2) - 1
+    temp: float = (1 + 0.2 * ma**2) ** (7 / 2) - 1
     pa = isa_p(height, alitude_unit)
-    v_equivalent = np.sqrt((1 / Rho_st) * (7 * pa * ((temp + 1) ** (2 / 7) - 1)))
+    v_equivalent: float = np.sqrt((1 / Rho_st) * (7 * pa * ((temp + 1) ** (2 / 7) - 1)))
     v_equivalent = _handle_units(v_equivalent, speed_unit, converter=CONVERT_FROM_M_S)
     return v_equivalent
 
 
-def mach_to_true_v(ma, height, alitude_unit="meter", speed_unit="mps") -> float:
+def mach_to_true_v(
+    ma: float, height: float, alitude_unit: str = "meter", speed_unit: str = "mps"
+) -> float:
     """
     Calculate true airspeed for a given mach number and altitude
     args:
@@ -376,9 +387,9 @@ def mach_to_true_v(ma, height, alitude_unit="meter", speed_unit="mps") -> float:
         v_true: True airspeed
     """
     height = _handle_units(height, unit=alitude_unit, converter=CONVERT_TO_M)
-    temperature = (1 + 0.2 * ma**2) ** (7 / 2) - 1
+    temperature: float = (1 + 0.2 * ma**2) ** (7 / 2) - 1
     pressure = isa_p(height, unit="meter")
-    v_equivalent = np.sqrt(
+    v_equivalent: float = np.sqrt(
         (1 / Rho_st) * (7 * pressure * ((temperature + 1) ** (2 / 7) - 1))
     )
     v_true = eq_v_to_true_v(
@@ -391,7 +402,9 @@ def mach_to_true_v(ma, height, alitude_unit="meter", speed_unit="mps") -> float:
     return v_true
 
 
-def true_v_to_mach(v_true, height, altitude_unit="meter", speed_unit="mps") -> float:
+def true_v_to_mach(
+    v_true: float, height: float, altitude_unit: str = "meter", speed_unit: str = "mps"
+) -> float:
     """
     Calculate Mach number or a given true airspeed and altitude
     args:
@@ -404,16 +417,16 @@ def true_v_to_mach(v_true, height, altitude_unit="meter", speed_unit="mps") -> f
     """
     v_true = _handle_units(v_true, unit=speed_unit, converter=CONVERT_TO_M_S)
     height = _handle_units(height, unit=altitude_unit, converter=CONVERT_TO_M)
-    ma = v_true / (np.sqrt(gamma * R * isa_temperature(height, unit="meter")))
+    ma: float = v_true / (np.sqrt(gamma * R * isa_temperature(height, unit="meter")))
     return ma
 
 
 def true_v_to_calibrated_v(
-    v_true,
-    height,
-    input_speed_unit="mps",
-    altitude_unit="meter",
-    return_speed_unit="mps",
+    v_true: float,
+    height: float,
+    input_speed_unit: str = "mps",
+    altitude_unit: str = "meter",
+    return_speed_unit: str = "mps",
 ) -> float:
     """
     Calculate calibrated airspeed for a given true airspeed and altitude
@@ -432,11 +445,11 @@ def true_v_to_calibrated_v(
 
 
 def calibrated_v_to_true_v(
-    v_calibrated,
-    height,
-    input_speed_unit="mps",
-    altitude_unit="meter",
-    return_speed_unit="mps",
+    v_calibrated: float,
+    height: float,
+    input_speed_unit: str = "mps",
+    altitude_unit: str = "meter",
+    return_speed_unit: str = "mps",
 ) -> float:
     """
     Calculate true airspeed for a given calibrated airspeed and altitude
@@ -450,16 +463,16 @@ def calibrated_v_to_true_v(
         v_true: True airspeed
     """
     ma = calibrated_v_to_mach(v_calibrated, height, input_speed_unit, altitude_unit)
-    v_true = mach_to_true_v(ma, altitude_unit, altitude_unit, return_speed_unit)
+    v_true = mach_to_true_v(ma, height, altitude_unit, return_speed_unit)
     return v_true
 
 
 def calibrated_v_to_eq_v(
-    v_calibrated,
-    height,
-    input_speed_unit="mps",
-    altitude_unit="meter",
-    return_speed_unit="mps",
+    v_calibrated: float,
+    height: float,
+    input_speed_unit: str = "mps",
+    altitude_unit: str = "meter",
+    return_speed_unit: str = "mps",
 ) -> float:
     """
     Calculate equivalent airspeed for a given calibrated airspeed and altitude
@@ -478,11 +491,11 @@ def calibrated_v_to_eq_v(
 
 
 def eq_v_to_calibrated_v(
-    v_equivalent,
-    height,
-    input_speed_unit="mps",
-    altitude_unit="meter",
-    return_speed_unit="mps",
+    v_equivalent: float,
+    height: float,
+    input_speed_unit: str = "mps",
+    altitude_unit: str = "meter",
+    return_speed_unit: str = "mps",
 ) -> float:
     """
     Calculate calibrated airspeed for a given equivalent airspeed and altitude
@@ -504,7 +517,10 @@ def eq_v_to_calibrated_v(
 
 
 def eq_v_to_mach(
-    v_equivalent, height, speed_unit="mps", altitude_unit="meter"
+    v_equivalent: float,
+    height: float,
+    speed_unit: str = "mps",
+    altitude_unit: str = "meter",
 ) -> float:
     """
     Calculate Mach number for a given equivalent airspeed and altitude

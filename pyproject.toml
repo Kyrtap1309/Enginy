@@ -16,15 +16,50 @@ cantera = ">=3.0.1"
 plotly = "^6.0.0"
 pymongo = "^4.11.2"
 flask-pymongo = "^3.0.1"
+types-flask = "^1.1.6"
+types-wtforms = "^3.2.1.20250401"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 poethepoet = "^0.33.1"
 ruff = "^0.11.2"
+mypy = "^1.15.0"
 
 [tool.poe.tasks]
 ruff-check = "ruff check ."
 ruff-format = "ruff format ."
+mypy-check = "mypy ."
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = "cantera.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "plotly.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pymongo.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "flask_wtf.*"
+ignore_missing_imports = true
 
 [tool.ruff]
 line-length = 88

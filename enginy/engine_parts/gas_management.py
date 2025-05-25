@@ -1,8 +1,10 @@
+from typing import Any
+
 import cantera as ct
 import plotly.graph_objs as go
 
-st = ["a", 1, 2, 3, 4, 5, 6]
-station_names = {
+st: list[str | int] = ["a", 1, 2, 3, 4, 5, 6]
+station_names: dict[str | int, str] = {
     st[0]: "ambient",
     st[1]: "inlet",
     st[2]: "inlet end (comp. face)",
@@ -12,15 +14,15 @@ station_names = {
     st[6]: "nozzle exit",
 }
 
-reaction_mechanism = "nDodecane_Reitz.yaml"
-phase_name = "nDodecane_IG"
+reaction_mechanism: str = "nDodecane_Reitz.yaml"
+phase_name: str = "nDodecane_IG"
 
-comp_air = "O2:0.209, N2:0.787, CO2:004"
-comp_fuel = "c12h26:1"
+comp_air: str = "O2:0.209, N2:0.787, CO2:004"
+comp_fuel: str = "c12h26:1"
 
 
-def initialize_gas(temperature_amp, p_amb):
-    gas = {}
+def initialize_gas(temperature_amp: float, p_amb: float) -> dict[str | int, Any]:
+    gas: dict[str | int, Any] = {}
     for station in st:
         gas[station] = ct.Solution(reaction_mechanism, phase_name)
         gas[station].X = comp_air
@@ -29,8 +31,12 @@ def initialize_gas(temperature_amp, p_amb):
 
 
 def plot_temperature_enthropy(
-    temperature: list, p: list, x: list, reaction_mechanism, phase_name
-):
+    temperature: list[float],
+    p: list[float],
+    x: list[str],
+    reaction_mechanism: str,
+    phase_name: str,
+) -> go.Figure:
     """
     This function plots T-s states with isobars using Plotly
 
