@@ -46,21 +46,13 @@ cd Enginy
 
 Now you can continue with running the **Enginy** app:
 
-### Option 1: Quick Start with Automated Setup Script
-
-The quickest way to set up and run Enginy is using the provided startup script:
-
-```bash
-python start_dev.py
-```
-
-### Option 2: Docker Compose (Recommended for Prodcution-like Environment)
+### Option 1: Docker Compose (Recommended for Prodcution-like Environment)
 
 To run both the application and MongoDB in containers:
 
 1. **Start the environment**:
     ```bash
-    docker-compose up
+    docker compose up -d
     ```
     This will build and start both the MongoDB contaner and the Enginy application container.
 
@@ -70,7 +62,7 @@ To run both the application and MongoDB in containers:
     docker-compose down
     ```
 
-### Option 3: Manual Setup (Not recommended)
+### Option 2: Manual Setup (Not recommended)
 
 1. **Install poetry**:
    ```bash
