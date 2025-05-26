@@ -22,6 +22,7 @@ from enginy.engine_config import (
     CLASS_MAP,
     DATA_CLASS_MAP,
     EnginePartType,
+    get_available_parts_with_icons
 )
 from enginy.forms import BasePartForm
 from enginy.models import EnginePart as EnginePartModel
@@ -56,6 +57,12 @@ def get_current_user_id() -> str:
     if "user_id" not in session:
         session["user_id"] = f"session_{datetime.now().timestamp()}"
     return str(session["user_id"])
+
+
+@app.context_processor
+def inject_engine_parts():
+    """Inject available engine parts into all templates"""
+    return {'available_engine_parts': get_available_parts_with_icons()}
 
 
 @app.route("/")

@@ -40,10 +40,11 @@
                             <li><a class="dropdown-item" href="{{ url_for('create_part') }}"><i class="fas fa-plus"></i> Create New Part</a></li>
                             <li><a class="dropdown-item" href="{{ url_for('index') }}"><i class="fas fa-list"></i> View All Parts</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('create_part', type='Inlet') }}">Inlet</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('create_part', type='Compressor') }}">Compressor</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('create_part', type='Combustor') }}">Combustor</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('create_part', type='Turbine') }}">Turbine</a></li>
+                            {% for part in available_engine_parts %}
+                            <li><a class="dropdown-item" href="{{ url_for('create_part', type=part.name) }}">
+                                <i class="{{ part.icon }}"></i> {{ part.name }}
+                            </a></li>
+                            {% endfor %}
                         </ul>
                     </li>
                     <li class="nav-item">

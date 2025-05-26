@@ -32,6 +32,21 @@ DATA_CLASS_MAP: dict[str, type] = {
     "Turbine": TurbineData,
 }
 
+PART_ICONS: dict[str, str] = {
+    "Inlet": "fas fa-sign-in-alt",
+    "Compressor": "fas fa-compress-arrows-alt",
+    "Combustor": "fas fa-fire",
+    "Turbine": "fas fa-fan",
+}
+
+
+def get_available_parts_with_icons() -> list[dict[str, str]]:
+    """Return list of available parts with their icons"""
+    return [
+        {"name": part, "icon": PART_ICONS.get(part, "fas fa-cog")}
+        for part in AVAILABLE_PARTS
+    ]
+
 
 def extract_part_data(part_obj: BaseEnginePart) -> dict[str, Any]:
     """
