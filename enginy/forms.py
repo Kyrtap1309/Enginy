@@ -159,3 +159,33 @@ class CombustorForm(BasePartForm):
             A dictionary indicating that the field 'compressor_part' depends on a 'Compressor' part.
         """
         return {"compressor_part": "Compressor"}
+
+
+class TurbineForm(BasePartForm):
+    user_part_name = StringField("Part Name", validators=[DataRequired()])
+
+    compressor_part = SelectField(
+        "Select Compressor Part", coerce=str, validate_choice=False
+    )
+    combustor_part = SelectField(
+        "Select Combustor Part", coerce=str, validate_choice=False
+    )
+
+    turbine_n_stages = IntegerField(
+        "Number of Stages", validators=[DataRequired(), NumberRange(1, 10)]
+    )
+    turbine_eta = FloatField(
+        "Turbine Efficiency", validators=[DataRequired(), NumberRange(0, 1)]
+    )
+    turbine_loss = FloatField(
+        "Relative Pressure Loss", validators=[DataRequired(), NumberRange(0.6, 1)]
+    )
+    submit = SubmitField("Create Turbine Part")
+
+    @classmethod
+    def get_dependency_fields(cls) -> dict[str, str]:
+        """
+        Returns:
+            A dictionary indicating that the field 'compressor_part' depends on a 'Compressor' part.
+        """
+        return {"compressor_part": "Compressor", "combustor_part": "Combustor"}

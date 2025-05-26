@@ -27,8 +27,8 @@ mypy = "^1.15.0"
 
 [tool.poe.tasks]
 ruff-check = "ruff check ."
-ruff-format = "ruff format ."
-mypy-check = "mypy ."
+format = "ruff format ."
+mypy = "mypy ."
 
 [tool.mypy]
 python_version = "3.11"
