@@ -17,7 +17,7 @@ station_names: dict[str | int, str] = {
 reaction_mechanism: str = "nDodecane_Reitz.yaml"
 phase_name: str = "nDodecane_IG"
 
-comp_air: str = "O2:0.209, N2:0.787, CO2:004"
+comp_air: str = "O2:0.209, N2:0.787, CO2:0.004"
 comp_fuel: str = "c12h26:1"
 
 

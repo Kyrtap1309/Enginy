@@ -457,3 +457,82 @@ def combustor_solver(
             print(f"Combustor finished, NOT converged, niter = {n_iter}")
 
     return mach_out, converged
+
+
+def turbine_solver(
+    gas_in: ct.Solution,
+    compressor_work: float,
+    turbine_n_stages: int,
+    turbine_eta: float,
+    turbine_loss: float,
+    mach_in: float,
+    mach_out: float,
+    gas_out: ct.Solution,
+) -> None:
+    """Calculate output parameters of turbine
+
+    args:
+        gas_in: Gas at entrance of turbine
+        compressor_work: Work from compressor that turbine needs to provide
+        turbine_n_stages: Number of turbine stages
+        turbine_eta: Turbine efficiency
+        turbine_loss: Turbine loss factor
+        mach_in: Mach number at turbine entrance
+        mach_out: Mach number at turbine exit
+        gas_out: Gas at exit of turbine
+    """
+    gamma_in = get_gamma(gas_in)
+    temperature_total_in = get_temperature_total(gas_in.T, gamma_in, mach_in)
+    p_total_in = get_p_total(gas_in.P, gamma_in, mach_in)
+
+    temperature_static_in = get_temperature_static(
+        temperature_total_in, gamma_in, mach_out
+    )
+    p_static_in = get_p_static(
+        p_total_in, temperature_static_in, temperature_total_in, gamma_in
+    )
+
+    work_per_stage = (compressor_work / turbine_loss) / turbine_n_stages
+
+    stages_p_out = np.zeros(turbine_n_stages)
+    stages_temperature_out = np.zeros(turbine_n_stages)
+    stage_gas = ct.Solution(
+        gas_management.reaction_mechanism, gas_management.phase_name
+    )
+    stage_gas.TPX = temperature_static_in, p_static_in, gas_in.X
+
+    turbine_work = 0.0
+
+    for st_counter in range(turbine_n_stages):
+        gamma = get_gamma(stage_gas)
+        temperature_static_in = stage_gas.T
+        temperature_total_prime = temperature_total_in - work_per_stage / (
+            stage_gas.cp * turbine_eta
+        )
+        p_total_out = p_total_in * (temperature_total_prime / temperature_total_in) ** (
+            gamma / (gamma - 1)
+        )
+        temperature_total_out = temperature_total_in - turbine_eta * (
+            temperature_total_in - temperature_total_prime
+        )
+
+        temperature_out = get_temperature_static(temperature_total_out, gamma, mach_out)
+        p_out = get_p_static(p_total_out, temperature_out, temperature_total_out, gamma)
+        stage_gas.TP = temperature_out, p_out
+
+        gamma = get_gamma(stage_gas)
+        temperature_out = get_temperature_static(temperature_total_out, gamma, mach_out)
+        p_out = get_p_static(p_total_out, temperature_out, temperature_total_out, gamma)
+        stage_gas.TP = temperature_out, p_out
+
+        stages_p_out[st_counter] = p_out
+        stages_temperature_out[st_counter] = temperature_out
+
+        turbine_work += stage_gas.cp * (
+            temperature_out - temperature_static_in
+        )  # in kJ/kg
+
+        p_total_in = p_total_out
+        temperature_total_in = temperature_total_out
+
+    gas_out.TP = temperature_out, p_out
